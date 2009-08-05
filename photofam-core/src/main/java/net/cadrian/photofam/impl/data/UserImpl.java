@@ -44,7 +44,7 @@ public class UserImpl implements User {
 
 	private static final Logger log = LoggerFactory.getLogger(UserImpl.class);
 
-	private final UserData data;
+	private final UserInfo info;
 	private final String password;
 
 	/**
@@ -59,7 +59,7 @@ public class UserImpl implements User {
 	 */
 	public UserImpl (Services a_services, String a_identifier, String a_password) throws AuthenticationException {
 		try {
-			data = read(a_identifier, a_password);
+			info = read(a_identifier, a_password);
 		} catch (Exception x) {
 			throw new AuthenticationException(a_services, x, a_identifier);
 		}
@@ -68,7 +68,7 @@ public class UserImpl implements User {
 
 	@Override
 	public String getIdentifier () {
-		return data.getIdentifier();
+		return info.getIdentifier();
 	}
 
 	/**
@@ -83,42 +83,42 @@ public class UserImpl implements User {
 	 *             if the user cannot be created
 	 */
 	public static void create (Services a_services, String a_identifier, String a_password) throws AuthenticationException {
-		if (getUserDataFile(a_identifier).exists()) {
+		if (IOUtils.getUserDataFile(a_identifier).exists()) {
 			throw new AuthenticationException(a_services, a_identifier);
 		}
-		UserData data = new UserData(a_identifier);
+		UserInfo info = new UserInfo(a_identifier);
 		try {
-			write(data, a_password);
+			write(info, a_password);
 		} catch (Exception x) {
 			throw new AuthenticationException(a_services, x, a_identifier);
 		}
 	}
 
-	private static UserData read (String identifier, String password) throws Exception {
+	private static UserInfo read (String identifier, String password) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		File datafile = getUserDataFile(identifier);
+		File datafile = IOUtils.getUserDataFile(identifier);
 		InputStream in = new BufferedInputStream(new FileInputStream(datafile));
 		int c = in.read();
 		while (c != -1) {
 			out.write(c);
 			c = in.read();
 		}
-		byte[] data = EncodeUtils.decode(password, out.toByteArray());
+		byte[] data = IOUtils.decode(password, out.toByteArray());
 		ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
-		UserData result = (UserData) ois.readObject();
+		UserInfo result = (UserInfo) ois.readObject();
 		ois.close();
 		return result;
 	}
 
-	private static void write (UserData data, String password) throws Exception {
+	private static void write (UserInfo info, String password) throws Exception {
 		ByteArrayOutputStream bo = new ByteArrayOutputStream();
 		ObjectOutputStream oos = new ObjectOutputStream(bo);
-		oos.writeObject(data);
+		oos.writeObject(info);
 		oos.flush();
 		oos.close();
-		byte[] encodedData = EncodeUtils.encode(password, bo.toByteArray());
-		File datafile = getUserDataFile(data.getIdentifier());
-		if (!datafile.getParentFile().mkdirs()) {
+		byte[] encodedData = IOUtils.encode(password, bo.toByteArray());
+		File datafile = IOUtils.getUserDataFile(info.getIdentifier());
+		if (!datafile.getParentFile().exists() && !datafile.getParentFile().mkdirs()) {
 			String msg = "Cannot create directory " + datafile.getParent();
 			log.error(msg);
 			throw new IOException(msg);
@@ -131,57 +131,23 @@ public class UserImpl implements User {
 		out.close();
 	}
 
-	private static File getUserDataFile (String identifier) {
-		File home = new File(System.getProperty("user.home"));
-		return new File(new File(new File(home, ".photofam"), "users"), identifier);
-	}
-
-	/**
-	 * @param raw
-	 *            the raw album
-	 * @return the shared album
-	 */
-	public Album getSharedAlbum (RawAlbum raw) {
-		return data.getSharedAlbum(raw, this);
-	}
-
-	/**
-	 * @param raw
-	 *            the raw album
-	 * @return the shared album
-	 */
-	public Album getPrivateAlbum (RawAlbum raw) {
-		return data.getPrivateAlbum(raw, this);
+	Album getAlbum (RawAlbum raw) {
+		return info.getAlbum(raw, this);
 	}
 
 	@Override
-	public Album getSharedAlbum (String name) {
-		return data.getSharedAlbum(name, this);
+	public Album getAlbum (String name) {
+		return info.getAlbum(name, this, password);
 	}
 
 	@Override
-	public Album getPrivateAlbum (String name) {
-		return data.getPrivateAlbum(name, this, password);
+	public void createAlbum (Services services, String a_name, File a_directory, boolean a_shared) {
+		info.createAlbum(services, a_name, this, a_shared ? null : password, a_directory);
 	}
 
 	@Override
-	public void createPrivateAlbum (String a_name, File a_directory) {
-		data.createPrivateAlbum(a_name, this, password, a_directory);
-	}
-
-	@Override
-	public void createSharedAlbum (String a_name, File a_directory) {
-		data.createSharedAlbum(a_name, this, a_directory);
-	}
-
-	@Override
-	public List<String> getPrivateAlbumNames () {
-		return data.getPrivateAlbumNames();
-	}
-
-	@Override
-	public List<String> getSharedAlbumNames () {
-		return data.getSharedAlbumNames();
+	public List<String> getAlbumNames () {
+		return info.getAlbumNames();
 	}
 
 }

@@ -15,6 +15,7 @@
  */
 package net.cadrian.photofam.impl.data;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -28,7 +29,43 @@ import javax.crypto.spec.DESKeySpec;
 /**
  * @author Cyril ADRIAN
  */
-public final class EncodeUtils {
+public final class IOUtils {
+
+	private static File getPotoFamDirectory () {
+		File result;
+		String photofamHome = System.getProperty("photofam.home");
+		if (photofamHome != null) {
+			result = new File(photofamHome);
+			if (!result.exists()) {
+				throw new RuntimeException(photofamHome + " does not exist");
+			}
+		} else {
+			File home = new File(System.getProperty("user.home"));
+			result = new File(home, ".photofam");
+			if (!result.exists() && !result.mkdirs()) {
+				throw new RuntimeException(photofamHome + " does not exist");
+			}
+		}
+		return result;
+	}
+
+	static File getAlbumFile (String user, String name) {
+		File home = getPotoFamDirectory();
+		File albums = new File(new File(home, "albums"), user == null ? "=shared" : user);
+		if (!albums.exists() && !albums.mkdirs()) {
+			throw new RuntimeException(albums.getPath() + " does not exist");
+		}
+		return new File(albums, name);
+	}
+
+	static File getUserDataFile (String identifier) {
+		File home = getPotoFamDirectory();
+		File users = new File(home, "users");
+		if (!users.exists() && !users.mkdirs()) {
+			throw new RuntimeException(users.getPath() + " does not exist");
+		}
+		return new File(users, identifier);
+	}
 
 	/**
 	 * @param pass

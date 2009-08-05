@@ -7,10 +7,9 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.cadrian.photofam</groupId>
-	<artifactId>photofam-core</artifactId>
-	<name>PhotoFam core</name>
+	<artifactId>photofam-xml</artifactId>
+	<name>PhotoFam XML module</name>
 	<version>0.0.1-SNAPSHOT</version>
-	<description>PhotoFam core</description>
 	<build>
 		<plugins>
 			<plugin>
@@ -21,35 +20,31 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>castor-maven-plugin</artifactId>
+				<version>1.0</version>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.5.8</version>
+			<groupId>org.codehaus.castor</groupId>
+			<artifactId>castor-core</artifactId>
+			<version>1.3</version>
 		</dependency>
 		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>0.9.16</version>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
-			<version>1.8.0</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.6</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>net.cadrian.photofam</groupId>
-			<artifactId>photofam-xml</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<groupId>org.codehaus.castor</groupId>
+			<artifactId>castor-xml</artifactId>
+			<version>1.3</version>
 		</dependency>
 	</dependencies>
 </project>

@@ -16,7 +16,6 @@
 package net.cadrian.photofam.services.album;
 
 import net.cadrian.photofam.Services;
-import net.cadrian.photofam.services.authentication.User;
 
 import java.util.List;
 
@@ -37,9 +36,9 @@ public interface Album {
 	void setName (String name);
 
 	/**
-	 * @return the owner of the album; never <code>null</code>.
+	 * @return the name of owner of the album; never <code>null</code>.
 	 */
-	User getOwner ();
+	String getOwner ();
 
 	/**
 	 * @return <code>true</code> if the album may be displayed by other users; <code>false</code> otherwise.

@@ -17,12 +17,14 @@ package net.cadrian.photofam.ui;
 
 import net.cadrian.photofam.Services;
 import net.cadrian.photofam.exception.AuthenticationException;
+import net.cadrian.photofam.services.TranslationService;
 import net.cadrian.photofam.services.authentication.User;
 
 import java.awt.CardLayout;
 import java.awt.Container;
 import java.io.File;
 
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
@@ -36,6 +38,7 @@ public class Screen extends JFrame implements ScreenChanges {
 
 	private static final Logger log = LoggerFactory.getLogger(Screen.class);
 
+	private File lastDirectory;
 	private final CardLayout layout;
 	private final Services services;
 	private User user;
@@ -45,9 +48,10 @@ public class Screen extends JFrame implements ScreenChanges {
 	 *            te services
 	 */
 	public Screen (Services a_services) {
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		layout = new CardLayout();
 		services = a_services;
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		lastDirectory = new File(System.getProperty("user.home"));
 	}
 
 	/**
@@ -112,12 +116,20 @@ public class Screen extends JFrame implements ScreenChanges {
 
 	private boolean createAlbum (boolean shared) {
 		boolean result = false;
-		AskAlbumName ask = new AskAlbumName(this, services, shared);
-		ask.setVisible(true);
-		String albumName = ask.getAlbumName();
-		File directory = ask.getDirectory();
-		if (albumName != null) {
-			user.createPrivateAlbum(albumName, directory);
+
+		TranslationService t = services.getTranslationService();
+
+		JFileChooser fileChooser = new JFileChooser(lastDirectory);
+		fileChooser.setDialogTitle(shared ? t.get("screen.createalbum.shared.title") : t.get("screen.createalbum.private.title"));
+		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		fileChooser.setMultiSelectionEnabled(false);
+
+		int ret = fileChooser.showDialog(this, t.get("screen.createalbum.button.create"));
+		if (ret == JFileChooser.APPROVE_OPTION) {
+			File directory = fileChooser.getSelectedFile();
+			String albumName = directory.getName();
+			user.createAlbum(services, albumName, directory, shared);
+			lastDirectory = directory.getParentFile();
 		}
 		return result;
 	}

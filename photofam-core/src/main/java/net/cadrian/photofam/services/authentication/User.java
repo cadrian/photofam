@@ -15,6 +15,7 @@
  */
 package net.cadrian.photofam.services.authentication;
 
+import net.cadrian.photofam.Services;
 import net.cadrian.photofam.services.album.Album;
 
 import java.io.File;
@@ -33,41 +34,26 @@ public interface User {
 	/**
 	 * @param name
 	 *            the name of the album
+	 * 
 	 * @return the album
 	 */
-	Album getSharedAlbum (String name);
+	Album getAlbum (String name);
 
 	/**
+	 * @param services
+	 *            the services
 	 * @param name
 	 *            the name of the new album
 	 * @param directory
 	 *            the directory containing the photos
+	 * @param shared
+	 *            <code>true</code> if the album is shared, <code>false</code> otherwise
 	 */
-	void createSharedAlbum (String name, File directory);
+	void createAlbum (Services services, String name, File directory, boolean shared);
 
 	/**
-	 * @param name
-	 *            the name of the album
-	 * @return the album
+	 * @return the names of the albums; never <code>null</code>.
 	 */
-	Album getPrivateAlbum (String name);
-
-	/**
-	 * @param name
-	 *            the name of the new album
-	 * @param directory
-	 *            the directory containing the photos
-	 */
-	void createPrivateAlbum (String name, File directory);
-
-	/**
-	 * @return the names of the shared albums; never <code>null</code>.
-	 */
-	List<String> getSharedAlbumNames ();
-
-	/**
-	 * @return the names of the private albums; never <code>null</code>.
-	 */
-	List<String> getPrivateAlbumNames ();
+	List<String> getAlbumNames ();
 
 }

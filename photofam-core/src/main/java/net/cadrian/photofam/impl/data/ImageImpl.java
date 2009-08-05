@@ -56,6 +56,18 @@ public class ImageImpl implements Image, Serializable {
 		tags = new ArrayList<Tag>();
 	}
 
+	ImageImpl (net.cadrian.photofam.xml.rawalbum.Image a_image) {
+		file = new File(a_image.getPath());
+		name = a_image.getName();
+		format = a_image.getFormat();
+
+		tags = new ArrayList<Tag>();
+
+		for (net.cadrian.photofam.xml.rawalbum.Tag tag : a_image.getTag()) {
+			tags.add(new TagImpl(tag));
+		}
+	}
+
 	@Override
 	public java.awt.Image getImage () {
 		java.awt.Image result = data;
@@ -88,8 +100,28 @@ public class ImageImpl implements Image, Serializable {
 	}
 
 	@Override
+	public String getPath () {
+		try {
+			return file.getCanonicalPath();
+		} catch (IOException x) {
+			throw new RuntimeException(x);
+		}
+	}
+
+	@Override
 	public List<Tag> getTags () {
 		return Collections.unmodifiableList(tags);
+	}
+
+	net.cadrian.photofam.xml.rawalbum.Image getCastorImage () {
+		net.cadrian.photofam.xml.rawalbum.Image result = new net.cadrian.photofam.xml.rawalbum.Image();
+		result.setFormat(getFormat());
+		result.setName(getName());
+		result.setPath(getPath());
+		for (Tag tag : tags) {
+			result.addTag(((TagImpl) tag).getCastorTag());
+		}
+		return result;
 	}
 
 }

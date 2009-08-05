@@ -103,34 +103,22 @@ public class Albums implements TreeModel {
 
 		@Override
 		public int getChildCount () {
-			return user.getSharedAlbumNames().size() + user.getPrivateAlbumNames().size();
+			return user.getAlbumNames().size();
 		}
 
 		@Override
 		public Node getChild (int i) {
 			Node result;
-			List<String> shared = user.getSharedAlbumNames();
-			if (i < shared.size()) {
-				result = new AlbumNode(user.getSharedAlbum(shared.get(i)));
-			} else {
-				List<String> priv = user.getPrivateAlbumNames();
-				result = new AlbumNode(user.getPrivateAlbum(priv.get(i - shared.size())));
-			}
+			List<String> names = user.getAlbumNames();
+			result = new AlbumNode(user.getAlbum(names.get(i)));
 			return result;
 		}
 
 		@Override
 		public int getIndexOfChild (Node a_child) {
-			int result;
 			String name = ((AlbumNode) a_child).getName();
-			List<String> shared = user.getSharedAlbumNames();
-			int i = shared.indexOf(name);
-			if (i != -1) {
-				result = i;
-			} else {
-				result = shared.size() + user.getPrivateAlbumNames().indexOf(name);
-			}
-			return result;
+			List<String> names = user.getAlbumNames();
+			return names.indexOf(name);
 		}
 
 		@Override

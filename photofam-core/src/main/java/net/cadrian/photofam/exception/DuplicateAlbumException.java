@@ -13,44 +13,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.cadrian.photofam.services.album;
+package net.cadrian.photofam.exception;
 
-import java.util.List;
+import net.cadrian.photofam.Services;
 
 /**
  * @author Cyril ADRIAN
  */
-public interface Image {
+public class DuplicateAlbumException extends PhotoFamException {
+
+	private static final long serialVersionUID = 5325772216761783425L;
 
 	/**
-	 * @return the image name; never <code>null</code>.
+	 * @param services
 	 */
-	String getName ();
+	public DuplicateAlbumException (Services services) {
+		super(services);
+	}
 
 	/**
-	 * @param name
-	 *            the new name of the image
+	 * @param services
+	 * @param cause
 	 */
-	void setName (String name);
-
-	/**
-	 * @return the path to the image
-	 */
-	String getPath ();
-
-	/**
-	 * @return the tags of the image; never <code>null</code> (but may be empty).
-	 */
-	List<Tag> getTags ();
-
-	/**
-	 * @return the format of the image; never <code>null</code>.
-	 */
-	String getFormat ();
-
-	/**
-	 * @return the data of the image; never <code>null</code>.
-	 */
-	java.awt.Image getImage ();
+	public DuplicateAlbumException (Services services, Throwable cause) {
+		super(services, cause);
+	}
 
 }
