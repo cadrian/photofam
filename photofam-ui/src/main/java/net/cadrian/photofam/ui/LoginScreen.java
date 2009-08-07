@@ -16,6 +16,7 @@
 package net.cadrian.photofam.ui;
 
 import net.cadrian.photofam.Services;
+import net.cadrian.photofam.exception.PhotoFamException;
 import net.cadrian.photofam.services.TranslationService;
 
 import java.awt.BorderLayout;
@@ -29,15 +30,21 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Cyril ADRIAN
  */
 class LoginScreen extends UIComponent {
+
+	static final Logger log = LoggerFactory.getLogger(LoginScreen.class);
 
 	private final JTextField login;
 	private final JPasswordField password;
@@ -51,7 +58,7 @@ class LoginScreen extends UIComponent {
 	void init (final ScreenChanges a_screen, Services services) {
 		assert SwingUtilities.isEventDispatchThread();
 
-		TranslationService t = services.getTranslationService();
+		final TranslationService t = services.getTranslationService();
 
 		JPanel loginPane = new JPanel();
 		loginPane.setLayout(new GridLayout(2, 2));
@@ -71,7 +78,15 @@ class LoginScreen extends UIComponent {
 
 			@Override
 			public void actionPerformed (ActionEvent a_e) {
-				a_screen.checkLogin(getLogin(), getPassword());
+				try {
+					a_screen.checkLogin(getLogin(), getPassword());
+				} catch (PhotoFamException pfx) {
+					log.error(pfx.getMessage(), pfx);
+					JOptionPane.showMessageDialog(LoginScreen.this, pfx.getMessage(), t.get("error"), JOptionPane.ERROR_MESSAGE);
+				} catch (RuntimeException rx) {
+					log.error(rx.getMessage(), rx);
+					JOptionPane.showMessageDialog(LoginScreen.this, rx.getMessage(), t.get("error"), JOptionPane.ERROR_MESSAGE);
+				}
 			}
 		});
 		buttonsPane.add(loginButton);
@@ -111,6 +126,7 @@ class LoginScreen extends UIComponent {
 	@Override
 	void prepare (PanelData a_data) {
 		assert a_data == null;
-	}
 
+		login.requestFocusInWindow();
+	}
 }

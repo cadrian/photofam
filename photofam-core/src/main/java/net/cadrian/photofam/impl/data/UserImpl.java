@@ -17,8 +17,11 @@ package net.cadrian.photofam.impl.data;
 
 import net.cadrian.photofam.Services;
 import net.cadrian.photofam.exception.AuthenticationException;
+import net.cadrian.photofam.exception.UnexpectedException;
 import net.cadrian.photofam.services.album.Album;
 import net.cadrian.photofam.services.authentication.User;
+import net.cadrian.photofam.xml.DataObject;
+import net.cadrian.photofam.xml.userdata.UserData;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -29,10 +32,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,9 +62,12 @@ public class UserImpl implements User {
 	 */
 	public UserImpl (Services a_services, String a_identifier, String a_password) throws AuthenticationException {
 		try {
-			info = read(a_identifier, a_password);
+			info = read(this, a_identifier, a_password);
 		} catch (Exception x) {
 			throw new AuthenticationException(a_services, x, a_identifier);
+		}
+		if (info == null) {
+			throw new AuthenticationException(a_services, a_identifier);
 		}
 		password = a_password;
 	}
@@ -94,29 +100,33 @@ public class UserImpl implements User {
 		}
 	}
 
-	private static UserInfo read (String identifier, String password) throws Exception {
+	private static UserInfo read (UserImpl a_user, String identifier, String password) throws Exception {
+		UserInfo result = null;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		File datafile = IOUtils.getUserDataFile(identifier);
-		InputStream in = new BufferedInputStream(new FileInputStream(datafile));
-		int c = in.read();
-		while (c != -1) {
-			out.write(c);
-			c = in.read();
+		if (datafile.exists()) {
+			InputStream in = new BufferedInputStream(new FileInputStream(datafile));
+			int c = in.read();
+			while (c != -1) {
+				out.write(c);
+				c = in.read();
+			}
+			byte[] data = IOUtils.decode(password, out.toByteArray());
+			GZIPInputStream gzin = new GZIPInputStream(new ByteArrayInputStream(data));
+			UserData userData = DataObject.read(gzin, UserData.class);
+			gzin.close();
+			result = new UserInfo(userData, a_user, password);
 		}
-		byte[] data = IOUtils.decode(password, out.toByteArray());
-		ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
-		UserInfo result = (UserInfo) ois.readObject();
-		ois.close();
 		return result;
 	}
 
 	private static void write (UserInfo info, String password) throws Exception {
 		ByteArrayOutputStream bo = new ByteArrayOutputStream();
-		ObjectOutputStream oos = new ObjectOutputStream(bo);
-		oos.writeObject(info);
-		oos.flush();
-		oos.close();
-		byte[] encodedData = IOUtils.encode(password, bo.toByteArray());
+		GZIPOutputStream gzout = new GZIPOutputStream(bo);
+		info.createUserData().write(gzout);
+		gzout.flush();
+		gzout.close();
+		byte[] encodedData = password == null ? bo.toByteArray() : IOUtils.encode(password, bo.toByteArray());
 		File datafile = IOUtils.getUserDataFile(info.getIdentifier());
 		if (!datafile.getParentFile().exists() && !datafile.getParentFile().mkdirs()) {
 			String msg = "Cannot create directory " + datafile.getParent();
@@ -132,17 +142,22 @@ public class UserImpl implements User {
 	}
 
 	Album getAlbum (RawAlbum raw) {
-		return info.getAlbum(raw, this);
+		return info.getAlbum(raw);
 	}
 
 	@Override
 	public Album getAlbum (String name) {
-		return info.getAlbum(name, this, password);
+		return info.getAlbum(name);
 	}
 
 	@Override
 	public void createAlbum (Services services, String a_name, File a_directory, boolean a_shared) {
 		info.createAlbum(services, a_name, this, a_shared ? null : password, a_directory);
+		try {
+			write(info, password);
+		} catch (Exception x) {
+			throw new UnexpectedException(services, x);
+		}
 	}
 
 	@Override

@@ -16,7 +16,6 @@
 package net.cadrian.photofam.ui;
 
 import net.cadrian.photofam.Services;
-import net.cadrian.photofam.exception.AuthenticationException;
 import net.cadrian.photofam.services.TranslationService;
 import net.cadrian.photofam.services.authentication.User;
 
@@ -75,17 +74,14 @@ public class Screen extends JFrame implements ScreenChanges {
 	public void showPanel (ScreenPanel panel, PanelData data) {
 		panel.prepare(data);
 		layout.show(getContentPane(), panel.name());
+		panel.requestFocus();
 	}
 
 	@Override
 	public void checkLogin (String a_login, String a_password) {
-		try {
-			user = services.getAuthenticationService().getUser(a_login, a_password);
-			BrowserData data = new BrowserData(user);
-			showPanel(ScreenPanel.BROWSER, data);
-		} catch (AuthenticationException ax) {
-			log.error("error while checking logging", ax);
-		}
+		user = services.getAuthenticationService().getUser(a_login, a_password);
+		BrowserData data = new BrowserData(user);
+		showPanel(ScreenPanel.BROWSER, data);
 	}
 
 	@Override
@@ -96,12 +92,8 @@ public class Screen extends JFrame implements ScreenChanges {
 
 	@Override
 	public void doCreateUser (String a_login, String a_password) {
-		try {
-			services.getAuthenticationService().createUser(a_login, a_password);
-			showPanel(ScreenPanel.LOGIN, null);
-		} catch (AuthenticationException ax) {
-			log.error("error while creating user " + a_login, ax);
-		}
+		services.getAuthenticationService().createUser(a_login, a_password);
+		showPanel(ScreenPanel.LOGIN, null);
 	}
 
 	@Override
@@ -130,6 +122,7 @@ public class Screen extends JFrame implements ScreenChanges {
 			String albumName = directory.getName();
 			user.createAlbum(services, albumName, directory, shared);
 			lastDirectory = directory.getParentFile();
+			result = true;
 		}
 		return result;
 	}

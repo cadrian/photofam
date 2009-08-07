@@ -27,10 +27,15 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Cyril ADRIAN
  */
 public class ImageImpl implements Image, Serializable {
+
+	private static final Logger log = LoggerFactory.getLogger(ImageImpl.class);
 
 	private static final long serialVersionUID = -426568095022116242L;
 
@@ -47,6 +52,10 @@ public class ImageImpl implements Image, Serializable {
 	 */
 	public ImageImpl (File a_file) {
 		assert a_file != null;
+
+		if (log.isInfoEnabled()) {
+			log.info("Loading " + a_file.getPath());
+		}
 
 		file = a_file;
 		name = a_file.getName();

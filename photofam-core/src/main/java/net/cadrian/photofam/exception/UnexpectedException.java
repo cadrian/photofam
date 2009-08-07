@@ -13,39 +13,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.cadrian.photofam.services.album;
+package net.cadrian.photofam.exception;
+
+import net.cadrian.photofam.Services;
 
 /**
  * @author Cyril ADRIAN
  */
-public interface ImageFilter {
+public class UnexpectedException extends PhotoFamException {
+
+	private static final long serialVersionUID = 5325772216761783425L;
 
 	/**
-	 * An image filter that accepts any image
+	 * @param services
+	 * @param cause
 	 */
-	public static ImageFilter ALL = new ImageFilter() {
-		@Override
-		public boolean accept (Image a_image) {
-			return true;
-		}
-	};
-
-	/**
-	 * An image filter that filters out all the images
-	 */
-	public static ImageFilter NONE = new ImageFilter() {
-		@Override
-		public boolean accept (Image a_image) {
-			return false;
-		}
-	};
-
-	/**
-	 * @param image
-	 *            the image to filter
-	 * 
-	 * @return <code>true</code> if the image should be shown; <code>false</code> otherwise.
-	 */
-	boolean accept (Image image);
+	public UnexpectedException (Services services, Throwable cause) {
+		super(services, cause, cause.getMessage());
+	}
 
 }

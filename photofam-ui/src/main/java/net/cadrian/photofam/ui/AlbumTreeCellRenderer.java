@@ -13,39 +13,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.cadrian.photofam.services.album;
+package net.cadrian.photofam.ui;
+
+import java.awt.Component;
+
+import javax.swing.JTree;
+import javax.swing.tree.DefaultTreeCellRenderer;
 
 /**
  * @author Cyril ADRIAN
+ * 
  */
-public interface ImageFilter {
+class AlbumTreeCellRenderer extends DefaultTreeCellRenderer {
+
+	private final Albums model;
 
 	/**
-	 * An image filter that accepts any image
+	 * @param a_model
 	 */
-	public static ImageFilter ALL = new ImageFilter() {
-		@Override
-		public boolean accept (Image a_image) {
-			return true;
-		}
-	};
+	public AlbumTreeCellRenderer (Albums a_model) {
+		model = a_model;
+	}
 
-	/**
-	 * An image filter that filters out all the images
-	 */
-	public static ImageFilter NONE = new ImageFilter() {
-		@Override
-		public boolean accept (Image a_image) {
-			return false;
-		}
-	};
-
-	/**
-	 * @param image
-	 *            the image to filter
-	 * 
-	 * @return <code>true</code> if the image should be shown; <code>false</code> otherwise.
-	 */
-	boolean accept (Image image);
+	@Override
+	public Component getTreeCellRendererComponent (JTree a_tree, Object a_value, boolean a_selected, boolean a_expanded,
+			boolean a_leaf, int a_row, boolean a_hasFocus) {
+		super.getTreeCellRendererComponent(a_tree, a_value, a_selected, a_expanded, a_leaf, a_row, a_hasFocus);
+		setIcon(((Albums.Node) a_value).getIcon());
+		return this;
+	}
 
 }

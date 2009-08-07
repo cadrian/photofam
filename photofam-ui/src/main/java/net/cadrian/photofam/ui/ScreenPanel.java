@@ -66,4 +66,8 @@ public enum ScreenPanel {
 		panel.prepare(a_data);
 	}
 
+	void requestFocus () {
+		panel.requestFocusInWindow();
+	}
+
 }

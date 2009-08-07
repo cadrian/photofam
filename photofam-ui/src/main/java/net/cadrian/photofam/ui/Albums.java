@@ -16,11 +16,15 @@
 package net.cadrian.photofam.ui;
 
 import net.cadrian.photofam.services.album.Album;
+import net.cadrian.photofam.services.album.ImageFilter;
 import net.cadrian.photofam.services.authentication.User;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
@@ -39,7 +43,7 @@ public class Albums implements TreeModel {
 	private RootNode root;
 	private final List<TreeModelListener> listeners = new ArrayList<TreeModelListener>();
 
-	private static interface Node {
+	static interface Node {
 		String getName ();
 
 		int getChildCount ();
@@ -49,9 +53,11 @@ public class Albums implements TreeModel {
 		int getIndexOfChild (Node a_child);
 
 		boolean isLeaf ();
+
+		Icon getIcon ();
 	}
 
-	private static class AlbumNode implements Node {
+	static class AlbumNode implements Node {
 		private final Album album;
 
 		AlbumNode (Album a_album) {
@@ -84,12 +90,25 @@ public class Albums implements TreeModel {
 		}
 
 		@Override
-		public String toString () {
-			return getName();
+		public Icon getIcon () {
+			URL location;
+			if (album.isShared()) {
+				location = RootNode.class.getClassLoader().getResource("img/shared-album.png");
+			} else {
+				location = RootNode.class.getClassLoader().getResource("img/private-album.png");
+			}
+			return new ImageIcon(location);
 		}
+
+		@Override
+		public String toString () {
+			int n = album.getImages(ImageFilter.ALL).size();
+			return (album.isShared() ? "" : "*") + getName() + " (" + n + " photo" + (n > 1 ? "s)" : ")");
+		}
+
 	}
 
-	private static class RootNode implements Node {
+	static class RootNode implements Node {
 		private final User user;
 
 		RootNode (User a_user) {
@@ -127,9 +146,16 @@ public class Albums implements TreeModel {
 		}
 
 		@Override
+		public Icon getIcon () {
+			URL location = RootNode.class.getClassLoader().getResource("img/user.png");
+			return new ImageIcon(location);
+		}
+
+		@Override
 		public String toString () {
 			return getName();
 		}
+
 	}
 
 	@Override

@@ -26,10 +26,15 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Cyril ADRIAN
  */
 public final class IOUtils {
+
+	private static final Logger log = LoggerFactory.getLogger(IOUtils.class);
 
 	private static File getPotoFamDirectory () {
 		File result;
@@ -55,7 +60,11 @@ public final class IOUtils {
 		if (!albums.exists() && !albums.mkdirs()) {
 			throw new RuntimeException(albums.getPath() + " does not exist");
 		}
-		return new File(albums, name);
+		File result = new File(albums, name);
+		if (log.isDebugEnabled()) {
+			log.debug("getAlbumFile('" + user + "', '" + name + "') = " + result);
+		}
+		return result;
 	}
 
 	static File getUserDataFile (String identifier) {
@@ -64,7 +73,11 @@ public final class IOUtils {
 		if (!users.exists() && !users.mkdirs()) {
 			throw new RuntimeException(users.getPath() + " does not exist");
 		}
-		return new File(users, identifier);
+		File result = new File(users, identifier);
+		if (log.isDebugEnabled()) {
+			log.debug("getUserDataFile('" + identifier + "') = " + result);
+		}
+		return result;
 	}
 
 	/**

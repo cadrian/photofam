@@ -16,6 +16,7 @@
 package net.cadrian.photofam.impl.data;
 
 import net.cadrian.photofam.Services;
+import net.cadrian.photofam.exception.UnexpectedException;
 import net.cadrian.photofam.services.album.Album;
 import net.cadrian.photofam.services.album.AlbumListener;
 import net.cadrian.photofam.services.album.Image;
@@ -32,16 +33,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-
-import javax.imageio.ImageIO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +57,14 @@ public class RawAlbum implements Album, Serializable {
 
 	private static final Logger log = LoggerFactory.getLogger(RawAlbum.class);
 
+	private static final Set<String> extensions = new HashSet<String>();
+	static {
+		extensions.add("jpg");
+		extensions.add("jpeg");
+		extensions.add("gif");
+		extensions.add("png");
+	}
+
 	private final String name;
 	private final List<Album> children;
 	private final List<Image> images;
@@ -65,28 +73,37 @@ public class RawAlbum implements Album, Serializable {
 	private transient List<AlbumListener> listeners = new ArrayList<AlbumListener>();
 
 	/**
+	 * @param a_services
+	 *            the services
 	 * @param a_name
 	 *            the album name
 	 * @param a_owner
 	 *            the album owner
-	 * @param a_shared
-	 *            <code>true</code> if the album is shared, <code>false</code> otherwise.
+	 * @param a_password
+	 *            the password to encrypt the album; or <code>null</code> for a shared album
 	 * @param a_directory
 	 *            the directory containing the images
 	 */
-	public RawAlbum (String a_name, String a_owner, boolean a_shared, File a_directory) {
+	public RawAlbum (Services a_services, String a_name, String a_owner, String a_password, File a_directory) {
+		assert a_services != null;
 		assert a_name != null;
 		assert a_owner != null;
 		assert a_directory.isDirectory();
 
 		name = a_name;
 		owner = a_owner;
-		shared = a_shared;
+		shared = a_password == null;
 
 		children = new ArrayList<Album>();
 		images = new ArrayList<Image>();
 
 		addImages(a_directory);
+
+		try {
+			write(a_password);
+		} catch (Exception x) {
+			throw new UnexpectedException(a_services, x);
+		}
 	}
 
 	RawAlbum (AlbumDataType a_albumData) {
@@ -113,12 +130,13 @@ public class RawAlbum implements Album, Serializable {
 			if (f.isDirectory()) {
 				addImages(f);
 			} else {
-				try {
-					ImageIO.read(f);
-					// get here only if the file contains an image
-					images.add(new ImageImpl(f));
-				} catch (IOException x) {
-					// forget it; not an image (anyway, not in a recognized format)
+				String filename = f.getName().toLowerCase();
+				int i = filename.lastIndexOf('.');
+				if (i != -1) {
+					String ext = filename.substring(i + 1);
+					if (extensions.contains(ext)) {
+						images.add(new ImageImpl(f));
+					}
 				}
 			}
 		}
@@ -194,8 +212,9 @@ public class RawAlbum implements Album, Serializable {
 
 	private static RawAlbum read (String name, String user, String password) throws Exception {
 		RawAlbum result = null;
+		boolean shared = password == null;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		File datafile = IOUtils.getAlbumFile(user, name);
+		File datafile = IOUtils.getAlbumFile(shared ? null : user, name);
 		if (datafile.exists()) {
 			InputStream in = new BufferedInputStream(new FileInputStream(datafile));
 			int c = in.read();
@@ -219,12 +238,7 @@ public class RawAlbum implements Album, Serializable {
 		gzout.flush();
 		gzout.close();
 		byte[] encodedData = password == null ? bo.toByteArray() : IOUtils.encode(password, bo.toByteArray());
-		File datafile = IOUtils.getAlbumFile(shared ? null : owner, password);
-		if (!datafile.getParentFile().mkdirs()) {
-			String msg = "Cannot create directory " + datafile.getParent();
-			log.error(msg);
-			throw new IOException(msg);
-		}
+		File datafile = IOUtils.getAlbumFile(shared ? null : owner, name);
 		OutputStream out = new BufferedOutputStream(new FileOutputStream(datafile));
 		for (int i = 0, n = encodedData.length; i < n; i++) {
 			out.write(encodedData[i]);
@@ -241,6 +255,8 @@ public class RawAlbum implements Album, Serializable {
 
 	private void fillCastorAlbum (AlbumDataType album) {
 		album.setName(name);
+		album.setOwner(owner);
+		album.setShared(shared);
 		for (Album child : children) {
 			Child c = new Child();
 			((RawAlbum) child).fillCastorAlbum(c);

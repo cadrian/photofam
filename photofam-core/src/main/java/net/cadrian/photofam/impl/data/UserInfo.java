@@ -23,7 +23,6 @@ import net.cadrian.photofam.xml.userdata.UserData;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,8 +51,15 @@ class UserInfo implements Serializable, AlbumListener {
 		byRawName = new HashMap<String, AlbumProxy>();
 	}
 
-	public UserInfo (UserData data) {
+	public UserInfo (UserData data, UserImpl impl, String password) {
 		this(data.getIdentifier());
+		for (net.cadrian.photofam.xml.userdata.Album a : data.getAlbum()) {
+			AlbumProxy album = new AlbumProxy(a, data.getIdentifier(), password);
+			album.addAlbumListener(this);
+			album.setViewer(impl);
+			byName.put(a.getName(), album);
+			byRawName.put(a.getRawName(), album);
+		}
 	}
 
 	/**
@@ -63,16 +69,11 @@ class UserInfo implements Serializable, AlbumListener {
 		return identifier;
 	}
 
-	AlbumProxy getAlbum (RawAlbum raw, UserImpl a_viewer) {
-		AlbumProxy result = byRawName.get(raw.getName());
-		if (result != null && !result.isAttached()) {
-			result.attach(raw, a_viewer);
-		}
-		return result;
+	AlbumProxy getAlbum (RawAlbum raw) {
+		return byRawName.get(raw.getName());
 	}
 
 	AlbumProxy createAlbum (Services services, String name, UserImpl a_viewer, String password, File a_directory) {
-		boolean shared = password == null;
 		String rawName;
 		try {
 			rawName = a_directory.getCanonicalPath().replace(File.separatorChar, '!');
@@ -84,11 +85,10 @@ class UserInfo implements Serializable, AlbumListener {
 		}
 		RawAlbum raw = RawAlbum.find(rawName, a_viewer.getIdentifier(), password);
 		if (raw == null) {
-			raw = new RawAlbum(rawName, a_viewer.getIdentifier(), shared, a_directory);
+			raw = new RawAlbum(services, rawName, a_viewer.getIdentifier(), password, a_directory);
 		}
 		raw.addAlbumListener(this);
-		AlbumProxy result = new AlbumProxy(name, rawName, shared);
-		result.attach(raw, a_viewer);
+		AlbumProxy result = new AlbumProxy(name, raw, a_viewer);
 		result.addAlbumListener(this);
 		byName.put(name, result);
 		byRawName.put(rawName, result);
@@ -101,27 +101,21 @@ class UserInfo implements Serializable, AlbumListener {
 		byName.put(a_album.getName(), (AlbumProxy) a_album);
 	}
 
-	private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
-		in.defaultReadObject();
-		for (AlbumProxy a : byName.values()) {
-			a.addAlbumListener(this);
-		}
-	}
-
-	Album getAlbum (String rawName, UserImpl user, String password) {
-		Album result = null;
-		AlbumProxy proxy = byName.get(rawName);
-		if (proxy != null) {
-			if (!proxy.isAttached()) {
-				proxy.attach(RawAlbum.find(rawName, user.getIdentifier(), proxy.isShared() ? null : password), user);
-			}
-			result = proxy;
-		}
-		return result;
+	Album getAlbum (String rawName) {
+		return byName.get(rawName);
 	}
 
 	List<String> getAlbumNames () {
 		return new ArrayList<String>(byName.keySet());
+	}
+
+	UserData createUserData () {
+		UserData result = new UserData();
+		result.setIdentifier(identifier);
+		for (AlbumProxy a : byName.values()) {
+			result.addAlbum(a.createCastorAlbum());
+		}
+		return result;
 	}
 
 }

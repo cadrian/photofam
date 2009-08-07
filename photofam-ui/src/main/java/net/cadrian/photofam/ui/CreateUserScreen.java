@@ -52,7 +52,7 @@ class CreateUserScreen extends UIComponent {
 	}
 
 	@Override
-	void init (final ScreenChanges a_screen, Services services) {
+	void init (final ScreenChanges a_screen, final Services services) {
 		assert SwingUtilities.isEventDispatchThread();
 
 		final TranslationService t = services.getTranslationService();
@@ -83,11 +83,12 @@ class CreateUserScreen extends UIComponent {
 					try {
 						a_screen.doCreateUser(getLogin(), getPassword());
 					} catch (PhotoFamException pfx) {
-						JOptionPane.showMessageDialog(CreateUserScreen.this, pfx.getMessage(), "", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(CreateUserScreen.this, pfx.getMessage(), services.getTranslationService()
+								.get("error"), JOptionPane.ERROR_MESSAGE);
 					}
 				} else {
-					JOptionPane.showMessageDialog(CreateUserScreen.this, t.get("createuserscreen.message.passwordmismatch"), "",
-							JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(CreateUserScreen.this, t.get("createuserscreen.message.passwordmismatch"),
+							services.getTranslationService().get("error"), JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		});
@@ -127,6 +128,8 @@ class CreateUserScreen extends UIComponent {
 		CreateUserData data = (CreateUserData) a_data;
 		login.setText(data.getLogin());
 		password.setText(data.getPassword());
+
+		login.requestFocusInWindow();
 	}
 
 }

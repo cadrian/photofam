@@ -15,13 +15,21 @@
  */
 package net.cadrian.photofam.xml;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
 
 import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.Unmarshaller;
 import org.exolab.castor.xml.ValidationException;
 import org.exolab.castor.xml.XMLContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
 
 /**
@@ -29,7 +37,66 @@ import org.xml.sax.InputSource;
  */
 public abstract class DataObject {
 
+	private final Logger log = LoggerFactory.getLogger(getClass());
+
 	private static final XMLContext context = new XMLContext();
+
+	private static final class LogWriter extends Writer {
+		private final Writer out;
+		private final StringBuilder log = new StringBuilder();
+
+		LogWriter (Writer a_out) {
+			out = a_out;
+		}
+
+		@Override
+		public void write (char[] cbuf, int off, int len) throws IOException {
+			out.write(cbuf, off, len);
+			log.append(cbuf, off, len);
+		}
+
+		@Override
+		public void close () throws IOException {
+			out.close();
+		}
+
+		@Override
+		public void flush () throws IOException {
+			out.flush();
+		}
+
+		String getLog () {
+			return log.toString();
+		}
+	}
+
+	private static final class LogReader extends Reader {
+		private final Reader in;
+		private final StringBuilder log = new StringBuilder();
+
+		LogReader (Reader a_in) {
+			in = a_in;
+		}
+
+		@Override
+		public void close () throws IOException {
+			in.close();
+		}
+
+		@Override
+		public int read (char[] cbuf, int off, int len) throws IOException {
+			int result = in.read(cbuf, off, len);
+			if (result != -1) {
+				log.append(cbuf, off, result);
+			}
+			return result;
+		}
+
+		String getLog () {
+			return log.toString();
+		}
+
+	}
 
 	/**
 	 * Serialize the object
@@ -39,9 +106,23 @@ public abstract class DataObject {
 	 * 
 	 * @throws MarshalException
 	 * @throws ValidationException
+	 * @throws IOException
 	 */
-	public void write (OutputStream out) throws MarshalException, ValidationException {
-		context.createMarshaller().marshal(this);
+	public void write (OutputStream out) throws MarshalException, ValidationException, IOException {
+		Marshaller marshaller = context.createMarshaller();
+		if (log.isDebugEnabled()) {
+			LogWriter logWriter = new LogWriter(new OutputStreamWriter(out));
+			marshaller.setWriter(logWriter);
+			marshaller.marshal(this);
+			String dlog = logWriter.getLog();
+			if (dlog.length() > 1024) {
+				dlog = dlog.substring(0, 1021) + "...";
+			}
+			log.debug(dlog);
+		} else {
+			marshaller.setWriter(new OutputStreamWriter(out));
+			marshaller.marshal(this);
+		}
 	}
 
 	/**
@@ -61,9 +142,18 @@ public abstract class DataObject {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends DataObject> T read (InputStream in, Class<T> clazz) throws MarshalException, ValidationException {
+		T result;
+		Logger log = LoggerFactory.getLogger(clazz);
 		Unmarshaller unmarshaller = context.createUnmarshaller();
 		unmarshaller.setClass(clazz);
-		return (T) unmarshaller.unmarshal(new InputSource(in));
+		if (log.isDebugEnabled()) {
+			LogReader debug = new LogReader(new InputStreamReader(in));
+			result = (T) unmarshaller.unmarshal(new InputSource(debug));
+			log.debug(debug.getLog());
+		} else {
+			result = (T) unmarshaller.unmarshal(new InputSource(in));
+		}
+		return result;
 	}
 
 }
