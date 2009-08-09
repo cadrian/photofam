@@ -48,6 +48,9 @@ import java.util.TreeSet;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Low-level album (underlying shared albums, and private albums)
  * 
@@ -56,6 +59,8 @@ import java.util.zip.GZIPOutputStream;
 public class RawAlbum implements Album, Serializable {
 
 	private static final long serialVersionUID = 5179315224341934149L;
+
+	private static final Logger log = LoggerFactory.getLogger(RawAlbum.class);
 
 	private static final Set<String> extensions = new HashSet<String>();
 	static {
@@ -131,25 +136,38 @@ public class RawAlbum implements Album, Serializable {
 				addImages(services, f, rootdir, allImages);
 			} else {
 				String canonical = f.getCanonicalPath();
-				String filename = f.getName().toLowerCase();
+				String filename = f.getName();
 				int i = filename.lastIndexOf('.');
 				if (i != -1) {
-					String ext = filename.substring(i + 1);
+					String ext = filename.substring(i + 1).toLowerCase();
 					if (extensions.contains(ext)) {
+						assert canonical.startsWith(rootdir);
 						if (!allImages.containsKey(canonical)) {
 							allImages.put(canonical, new ImageImpl(f));
+							if (log.isDebugEnabled()) {
+								log.debug("Added image: " + canonical);
+							}
 						}
-						assert canonical.startsWith(rootdir);
 						String canonicalTag = cleanTag(canonical.substring(rootdir.length()));
 						if (canonicalTag != null) {
 							allImages.get(canonical).addTag(services.getTagService().getTag(canonicalTag));
+							if (log.isDebugEnabled()) {
+								log.debug("Added tag " + canonicalTag + " to image " + canonical);
+							}
 						}
 						String absolute = f.getAbsolutePath();
-						if (canonical != absolute && absolute.startsWith(rootdir)) {
-							// usually a symbolic link
-							String absoluteTag = cleanTag(absolute.substring(rootdir.length()));
-							if (absoluteTag != null) {
-								allImages.get(canonical).addTag(services.getTagService().getTag(absoluteTag));
+						if (canonical != absolute) {
+							if (absolute.startsWith(rootdir)) {
+								// usually a symbolic link
+								String absoluteTag = cleanTag(absolute.substring(rootdir.length()));
+								if (absoluteTag != null) {
+									allImages.get(canonical).addTag(services.getTagService().getTag(absoluteTag));
+									if (log.isDebugEnabled()) {
+										log.debug("Added tag " + absoluteTag + " to image " + canonical);
+									}
+								}
+							} else {
+								log.warn("Strange absolute path: " + absolute + " does not start with " + rootdir);
 							}
 						}
 					}
@@ -311,6 +329,9 @@ public class RawAlbum implements Album, Serializable {
 		Set<Tag> result = new TreeSet<Tag>();
 		for (Image i : images) {
 			result.addAll(i.getTags());
+		}
+		if (log.isInfoEnabled()) {
+			log.info("Tags of album " + getName() + ": " + result);
 		}
 		return new ArrayList<Tag>(result);
 	}

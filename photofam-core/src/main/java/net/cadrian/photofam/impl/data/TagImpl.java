@@ -35,6 +35,7 @@ public class TagImpl implements Tag, Serializable, Comparable<TagImpl> {
 	private final String name;
 	private final TagImpl parent;
 	private transient Set<Tag> children;
+	private transient String completeName;
 
 	/**
 	 * Add a tag to the tag service
@@ -67,20 +68,27 @@ public class TagImpl implements Tag, Serializable, Comparable<TagImpl> {
 
 	@Override
 	public int compareTo (TagImpl other) {
-		int result;
-		if (other.parent == parent) {
-			result = 0;
-		} else if (parent == null) {
-			result = 1;
-		} else if (other.parent == null) {
-			result = -1;
-		} else {
-			result = parent.compareTo(other.parent);
-		}
+		int result = getCompleteName().compareToIgnoreCase(other.getCompleteName());
 		if (result == 0) {
-			result = name.compareTo(other.name);
+			result = getCompleteName().compareTo(other.getCompleteName());
 		}
 		return result;
+	}
+
+	@Override
+	public boolean equals (Object a_obj) {
+		boolean result;
+		if (a_obj instanceof TagImpl) {
+			result = compareTo((TagImpl) a_obj) == 0;
+		} else {
+			result = false;
+		}
+		return result;
+	}
+
+	@Override
+	public int hashCode () {
+		return getCompleteName().hashCode();
 	}
 
 	@Override
@@ -96,9 +104,13 @@ public class TagImpl implements Tag, Serializable, Comparable<TagImpl> {
 
 	@Override
 	public String getCompleteName () {
-		StringBuilder result = new StringBuilder();
-		fillName(result);
-		return result.toString();
+		String result = completeName;
+		if (result == null) {
+			StringBuilder buf = new StringBuilder();
+			fillName(buf);
+			completeName = result = buf.toString();
+		}
+		return result;
 	}
 
 	void fillName (StringBuilder b) {
@@ -117,6 +129,11 @@ public class TagImpl implements Tag, Serializable, Comparable<TagImpl> {
 	@Override
 	public Tag getParent () {
 		return parent;
+	}
+
+	@Override
+	public String toString () {
+		return '<' + getCompleteName() + '>';
 	}
 
 }

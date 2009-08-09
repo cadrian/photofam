@@ -119,9 +119,10 @@ public class Tags implements TreeModel {
 			List<Tag> allTags = album.getAllTags();
 			Set<Tag> rootTags = new TreeSet<Tag>();
 			for (Tag tag : allTags) {
-				if (tag.getParent() == null) {
-					rootTags.add(tag);
+				while (tag.getParent() != null) {
+					tag = tag.getParent();
 				}
+				rootTags.add(tag);
 			}
 			tags = new ArrayList<Tag>(rootTags);
 		}
@@ -233,7 +234,8 @@ public class Tags implements TreeModel {
 
 	/**
 	 * @param a_path
-	 * @return
+	 *            the selected tag path
+	 * @return the corresponding tag
 	 */
 	public Tag getTag (TreePath a_path) {
 		return ((Node) a_path.getLastPathComponent()).getTag();

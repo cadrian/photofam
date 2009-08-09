@@ -34,6 +34,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Album as viewed by a user
  * 
@@ -42,6 +45,8 @@ import java.util.TreeSet;
 public class AlbumProxy implements Album, Serializable {
 
 	private static final long serialVersionUID = -9174042753042136594L;
+
+	private static final Logger log = LoggerFactory.getLogger(AlbumProxy.class);
 
 	private transient RawAlbum raw;
 	private String name;
@@ -207,7 +212,14 @@ public class AlbumProxy implements Album, Serializable {
 	public List<Tag> getAllTags () {
 		Set<Tag> result = new TreeSet<Tag>();
 		for (Image i : getImages(ImageFilter.ALL)) {
-			result.addAll(i.getTags());
+			List<Tag> tags = i.getTags();
+			if (log.isDebugEnabled()) {
+				log.debug(i.getName() + ": " + tags);
+			}
+			result.addAll(tags);
+		}
+		if (log.isInfoEnabled()) {
+			log.info("Tags of album " + getName() + ": " + result);
 		}
 		return new ArrayList<Tag>(result);
 	}
