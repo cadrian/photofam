@@ -16,6 +16,8 @@
 package net.cadrian.photofam.ui;
 
 import net.cadrian.photofam.Services;
+import net.cadrian.photofam.services.album.Album;
+import net.cadrian.photofam.services.album.Image;
 
 import java.awt.Container;
 
@@ -68,6 +70,20 @@ public enum ScreenPanel {
 
 	void requestFocus () {
 		panel.requestFocusInWindow();
+	}
+
+	/**
+	 * @param a_album
+	 */
+	public void showAlbum (Album a_album) {
+		panel.showAlbum(a_album);
+	}
+
+	/**
+	 * @param a_image
+	 */
+	public void showImage (Image a_image) {
+		panel.showImage(a_image);
 	}
 
 }

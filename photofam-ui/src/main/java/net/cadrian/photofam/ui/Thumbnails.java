@@ -16,6 +16,8 @@
 package net.cadrian.photofam.ui;
 
 import net.cadrian.photofam.Services;
+import net.cadrian.photofam.services.album.Album;
+import net.cadrian.photofam.services.album.Image;
 
 import java.awt.Dimension;
 
@@ -36,6 +38,18 @@ class Thumbnails extends UIComponent {
 	@Override
 	void prepare (PanelData a_data) {
 		assert a_data == null;
+	}
+
+	@Override
+	void showAlbum (Album a_album) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	void showImage (Image a_image) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

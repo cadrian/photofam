@@ -15,6 +15,9 @@
  */
 package net.cadrian.photofam.ui;
 
+import net.cadrian.photofam.services.album.Album;
+import net.cadrian.photofam.services.album.Image;
+
 /**
  * Gathers all the callbacks to the screen for user interface changes.
  * 
@@ -53,13 +56,25 @@ public interface ScreenChanges {
 	void doCreateUser (String a_login, String a_password);
 
 	/**
-	 * 
+	 * @return <code>true</code> if the album was successfully created, <code>false</code> otherwise.
 	 */
 	boolean createSharedAlbum ();
 
 	/**
-	 * 
+	 * @return <code>true</code> if the album was successfully created, <code>false</code> otherwise.
 	 */
 	boolean createPrivateAlbum ();
+
+	/**
+	 * @param a_album
+	 *            the album to show (may be <code>null</code>)
+	 */
+	void showAlbum (Album a_album);
+
+	/**
+	 * @param a_image
+	 *            the image to show (may be <code>null</code>)
+	 */
+	void showImage (Image a_image);
 
 }

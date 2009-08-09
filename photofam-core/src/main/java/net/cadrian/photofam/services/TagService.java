@@ -13,39 +13,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.cadrian.photofam.ui;
+package net.cadrian.photofam.services;
 
-import net.cadrian.photofam.Services;
-import net.cadrian.photofam.services.album.Album;
-import net.cadrian.photofam.services.album.Image;
-
-import javax.swing.SwingUtilities;
+import net.cadrian.photofam.services.album.Tag;
 
 /**
  * @author Cyril ADRIAN
  */
-class SlideshowScreen extends UIComponent {
+public interface TagService {
 
-	@Override
-	void init (ScreenChanges a_screen, Services services) {
-		assert SwingUtilities.isEventDispatchThread();
-	}
+	/**
+	 * @param completeName
+	 *            the full name of the tag
+	 * @return the tag
+	 */
+	Tag getTag (String completeName);
 
-	@Override
-	void prepare (PanelData a_data) {
-		assert a_data == null;
-	}
-
-	@Override
-	void showAlbum (Album a_album) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	void showImage (Image a_image) {
-		// TODO Auto-generated method stub
-
-	}
+	/**
+	 * @param a_tag
+	 *            the tag to add
+	 */
+	void addTag (Tag a_tag);
 
 }

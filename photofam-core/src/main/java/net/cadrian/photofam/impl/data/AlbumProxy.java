@@ -21,6 +21,7 @@ import net.cadrian.photofam.services.album.Album;
 import net.cadrian.photofam.services.album.AlbumListener;
 import net.cadrian.photofam.services.album.Image;
 import net.cadrian.photofam.services.album.ImageFilter;
+import net.cadrian.photofam.services.album.Tag;
 import net.cadrian.photofam.xml.userdata.AlbumType;
 import net.cadrian.photofam.xml.userdata.Child;
 import net.cadrian.photofam.xml.userdata.RemovedImage;
@@ -31,6 +32,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Album as viewed by a user
@@ -71,7 +73,7 @@ public class AlbumProxy implements Album, Serializable {
 		viewer = a_viewer;
 	}
 
-	AlbumProxy (AlbumType a_album, String userIdentifier, String password) {
+	AlbumProxy (Services services, AlbumType a_album, String userIdentifier, String password) {
 		name = a_album.getName();
 		rawName = a_album.getRawName();
 		shared = a_album.getShared();
@@ -81,9 +83,9 @@ public class AlbumProxy implements Album, Serializable {
 		}
 		children = new ArrayList<Album>();
 		for (Child c : a_album.getChild()) {
-			children.add(new AlbumProxy(c, userIdentifier, password));
+			children.add(new AlbumProxy(services, c, userIdentifier, password));
 		}
-		raw = RawAlbum.find(rawName, userIdentifier, shared ? null : password);
+		raw = RawAlbum.find(services, rawName, userIdentifier, shared ? null : password);
 	}
 
 	void setViewer (UserImpl a_viewer) {
@@ -199,6 +201,15 @@ public class AlbumProxy implements Album, Serializable {
 			ri.setName(rm);
 			album.addRemovedImage(ri);
 		}
+	}
+
+	@Override
+	public List<Tag> getAllTags () {
+		Set<Tag> result = new TreeSet<Tag>();
+		for (Image i : getImages(ImageFilter.ALL)) {
+			result.addAll(i.getTags());
+		}
+		return new ArrayList<Tag>(result);
 	}
 
 }

@@ -51,10 +51,10 @@ class UserInfo implements Serializable, AlbumListener {
 		byRawName = new HashMap<String, AlbumProxy>();
 	}
 
-	public UserInfo (UserData data, UserImpl impl, String password) {
+	public UserInfo (Services services, UserData data, UserImpl impl, String password) {
 		this(data.getIdentifier());
 		for (net.cadrian.photofam.xml.userdata.Album a : data.getAlbum()) {
-			AlbumProxy album = new AlbumProxy(a, data.getIdentifier(), password);
+			AlbumProxy album = new AlbumProxy(services, a, data.getIdentifier(), password);
 			album.addAlbumListener(this);
 			album.setViewer(impl);
 			byName.put(a.getName(), album);
@@ -83,7 +83,7 @@ class UserInfo implements Serializable, AlbumListener {
 		if (byRawName.get(rawName) != null) {
 			throw new DuplicateAlbumException(services);
 		}
-		RawAlbum raw = RawAlbum.find(rawName, a_viewer.getIdentifier(), password);
+		RawAlbum raw = RawAlbum.find(services, rawName, a_viewer.getIdentifier(), password);
 		if (raw == null) {
 			raw = new RawAlbum(services, rawName, a_viewer.getIdentifier(), password, a_directory);
 		}

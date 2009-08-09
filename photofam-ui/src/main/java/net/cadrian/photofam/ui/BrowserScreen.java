@@ -17,6 +17,8 @@ package net.cadrian.photofam.ui;
 
 import net.cadrian.photofam.Services;
 import net.cadrian.photofam.services.TranslationService;
+import net.cadrian.photofam.services.album.Album;
+import net.cadrian.photofam.services.album.Image;
 
 import java.awt.BorderLayout;
 
@@ -32,7 +34,7 @@ class BrowserScreen extends UIComponent {
 	private final Toolbar toolbar;
 	private final ImageViewer viewer;
 	private final Thumbnails thumbnails;
-	private final Tags tags;
+	private final TagsTree tags;
 	private final JTabbedPane tabs;
 
 	/**
@@ -43,7 +45,7 @@ class BrowserScreen extends UIComponent {
 		toolbar = new Toolbar();
 		viewer = new ImageViewer();
 		thumbnails = new Thumbnails();
-		tags = new Tags();
+		tags = new TagsTree();
 		tabs = new JTabbedPane();
 	}
 
@@ -77,6 +79,24 @@ class BrowserScreen extends UIComponent {
 		tags.prepare(a_data);
 
 		tabs.setSelectedIndex(0);
+	}
+
+	@Override
+	void showAlbum (Album a_album) {
+		albums.showAlbum(a_album);
+		toolbar.showAlbum(a_album);
+		viewer.showAlbum(a_album);
+		thumbnails.showAlbum(a_album);
+		tags.showAlbum(a_album);
+	}
+
+	@Override
+	void showImage (Image a_image) {
+		albums.showImage(a_image);
+		toolbar.showImage(a_image);
+		viewer.showImage(a_image);
+		thumbnails.showImage(a_image);
+		tags.showImage(a_image);
 	}
 
 }

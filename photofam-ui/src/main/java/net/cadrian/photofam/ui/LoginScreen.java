@@ -18,6 +18,8 @@ package net.cadrian.photofam.ui;
 import net.cadrian.photofam.Services;
 import net.cadrian.photofam.exception.PhotoFamException;
 import net.cadrian.photofam.services.TranslationService;
+import net.cadrian.photofam.services.album.Album;
+import net.cadrian.photofam.services.album.Image;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -129,4 +131,15 @@ class LoginScreen extends UIComponent {
 
 		login.requestFocusInWindow();
 	}
+
+	@Override
+	void showAlbum (Album a_album) {
+		assert false;
+	}
+
+	@Override
+	void showImage (Image a_image) {
+		assert false;
+	}
+
 }

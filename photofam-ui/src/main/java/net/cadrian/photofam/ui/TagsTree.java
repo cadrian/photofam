@@ -19,33 +19,49 @@ import net.cadrian.photofam.Services;
 import net.cadrian.photofam.services.album.Album;
 import net.cadrian.photofam.services.album.Image;
 
+import java.awt.Dimension;
+
+import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Cyril ADRIAN
  */
-class SlideshowScreen extends UIComponent {
+class TagsTree extends UIComponent {
+
+	static final Logger log = LoggerFactory.getLogger(TagsTree.class);
+
+	private final JTree view;
+	final Tags model;
+
+	TagsTree () {
+		model = new Tags();
+		view = new JTree(model);
+	}
 
 	@Override
 	void init (ScreenChanges a_screen, Services services) {
 		assert SwingUtilities.isEventDispatchThread();
+
+		setPreferredSize(new Dimension(200, 400));
 	}
 
 	@Override
 	void prepare (PanelData a_data) {
-		assert a_data == null;
+		assert a_data instanceof BrowserData;
 	}
 
 	@Override
 	void showAlbum (Album a_album) {
-		// TODO Auto-generated method stub
-
+		model.setAlbum(a_album);
 	}
 
 	@Override
 	void showImage (Image a_image) {
-		// TODO Auto-generated method stub
-
+		// does not handle images
 	}
 
 }

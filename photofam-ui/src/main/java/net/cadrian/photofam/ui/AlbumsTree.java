@@ -17,6 +17,8 @@ package net.cadrian.photofam.ui;
 
 import net.cadrian.photofam.Services;
 import net.cadrian.photofam.exception.PhotoFamException;
+import net.cadrian.photofam.services.album.Album;
+import net.cadrian.photofam.services.album.Image;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -31,6 +33,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreePath;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,9 +65,16 @@ class AlbumsTree extends UIComponent {
 		view.setRootVisible(true);
 		view.setEditable(false);
 		view.setScrollsOnExpand(true);
-		view.setShowsRootHandles(true);
+		view.setShowsRootHandles(false);
 		view.putClientProperty("JTree.lineStyle", "Horizontal");
 		view.setCellRenderer(new AlbumTreeCellRenderer(model));
+
+		view.addTreeSelectionListener(new TreeSelectionListener() {
+			@Override
+			public void valueChanged (TreeSelectionEvent e) {
+				a_screen.showAlbum(model.getAlbum(e.getPath()));
+			}
+		});
 
 		URL addPrivateImage = AlbumsTree.class.getClassLoader().getResource("img/private-album.png");
 		URL addSharedImage = AlbumsTree.class.getClassLoader().getResource("img/shared-album.png");
@@ -120,6 +132,20 @@ class AlbumsTree extends UIComponent {
 	void prepare (PanelData a_data) {
 		assert a_data instanceof BrowserData;
 		model.setUser(((BrowserData) a_data).getUser());
+	}
+
+	@Override
+	void showAlbum (Album a_album) {
+		TreePath path = view.getSelectionPath();
+		Album a = model.getAlbum(path);
+		if (a_album != a) {
+			view.removeSelectionPath(path);
+		}
+	}
+
+	@Override
+	void showImage (Image a_image) {
+		// don't care (don't manage individual images)
 	}
 
 }

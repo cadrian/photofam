@@ -17,6 +17,8 @@ package net.cadrian.photofam.ui;
 
 import net.cadrian.photofam.Services;
 import net.cadrian.photofam.services.TranslationService;
+import net.cadrian.photofam.services.album.Album;
+import net.cadrian.photofam.services.album.Image;
 import net.cadrian.photofam.services.authentication.User;
 
 import java.awt.CardLayout;
@@ -125,6 +127,26 @@ public class Screen extends JFrame implements ScreenChanges {
 			result = true;
 		}
 		return result;
+	}
+
+	@Override
+	public void showAlbum (Album a_album) {
+		if (log.isInfoEnabled()) {
+			log.info("Showing album: " + a_album.getName());
+		}
+		for (ScreenPanel p : ScreenPanel.values()) {
+			p.showAlbum(a_album);
+		}
+	}
+
+	@Override
+	public void showImage (Image a_image) {
+		if (log.isInfoEnabled()) {
+			log.info("Showing image: " + a_image.getName());
+		}
+		for (ScreenPanel p : ScreenPanel.values()) {
+			p.showImage(a_image);
+		}
 	}
 
 }

@@ -78,4 +78,9 @@ public interface Album {
 	 */
 	void addAlbumListener (AlbumListener albumListener);
 
+	/**
+	 * @return the list of all the tags on every image; never <code>null</code>.
+	 */
+	List<Tag> getAllTags ();
+
 }

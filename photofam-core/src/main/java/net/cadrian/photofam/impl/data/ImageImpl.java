@@ -15,6 +15,8 @@
  */
 package net.cadrian.photofam.impl.data;
 
+import net.cadrian.photofam.Services;
+import net.cadrian.photofam.services.TagService;
 import net.cadrian.photofam.services.album.Image;
 import net.cadrian.photofam.services.album.Tag;
 
@@ -65,15 +67,16 @@ public class ImageImpl implements Image, Serializable {
 		tags = new ArrayList<Tag>();
 	}
 
-	ImageImpl (net.cadrian.photofam.xml.rawalbum.Image a_image) {
+	ImageImpl (Services services, net.cadrian.photofam.xml.rawalbum.Image a_image) {
 		file = new File(a_image.getPath());
 		name = a_image.getName();
 		format = a_image.getFormat();
 
 		tags = new ArrayList<Tag>();
 
-		for (net.cadrian.photofam.xml.rawalbum.Tag tag : a_image.getTag()) {
-			tags.add(new TagImpl(tag));
+		TagService t = services.getTagService();
+		for (String tag : a_image.getTag()) {
+			tags.add(t.getTag(tag));
 		}
 	}
 
@@ -128,7 +131,7 @@ public class ImageImpl implements Image, Serializable {
 		result.setName(getName());
 		result.setPath(getPath());
 		for (Tag tag : tags) {
-			result.addTag(((TagImpl) tag).getCastorTag());
+			result.addTag(tag.getCompleteName());
 		}
 		return result;
 	}

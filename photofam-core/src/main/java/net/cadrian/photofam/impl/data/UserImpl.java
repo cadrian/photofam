@@ -62,7 +62,7 @@ public class UserImpl implements User {
 	 */
 	public UserImpl (Services a_services, String a_identifier, String a_password) throws AuthenticationException {
 		try {
-			info = read(this, a_identifier, a_password);
+			info = read(a_services, this, a_identifier, a_password);
 		} catch (Exception x) {
 			throw new AuthenticationException(a_services, x, a_identifier);
 		}
@@ -100,7 +100,7 @@ public class UserImpl implements User {
 		}
 	}
 
-	private static UserInfo read (UserImpl a_user, String identifier, String password) throws Exception {
+	private static UserInfo read (Services services, UserImpl a_user, String identifier, String password) throws Exception {
 		UserInfo result = null;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		File datafile = IOUtils.getUserDataFile(identifier);
@@ -115,7 +115,7 @@ public class UserImpl implements User {
 			GZIPInputStream gzin = new GZIPInputStream(new ByteArrayInputStream(data));
 			UserData userData = DataObject.read(gzin, UserData.class);
 			gzin.close();
-			result = new UserInfo(userData, a_user, password);
+			result = new UserInfo(services, userData, a_user, password);
 		}
 		return result;
 	}

@@ -15,37 +15,83 @@
  */
 package net.cadrian.photofam.impl.data;
 
+import net.cadrian.photofam.services.TagService;
 import net.cadrian.photofam.services.album.Tag;
-import net.cadrian.photofam.xml.rawalbum.Parent;
-import net.cadrian.photofam.xml.rawalbum.TagType;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author Cyril ADRIAN
  */
-class TagImpl implements Tag, Serializable {
+public class TagImpl implements Tag, Serializable, Comparable<TagImpl> {
 
 	private static final long serialVersionUID = -6306637635637593226L;
 
 	private final String name;
-	private final Tag parent;
+	private final TagImpl parent;
+	private transient Set<Tag> children;
 
 	/**
+	 * Add a tag to the tag service
+	 * 
 	 * @param a_name
-	 *            name
+	 *            the name of the tag
 	 * @param a_parent
-	 *            parent
+	 *            the parent of the tag
+	 * @param a_tagService
+	 *            the tag service
 	 */
-	public TagImpl (String a_name, Tag a_parent) {
-		name = a_name;
-		parent = a_parent;
+	public static void createTag (String a_name, Tag a_parent, TagService a_tagService) {
+		a_tagService.addTag(new TagImpl(a_name, (TagImpl) a_parent));
 	}
 
-	TagImpl (TagType a_tag) {
-		name = a_tag.getName();
-		Parent p = a_tag.getParent();
-		parent = p == null ? null : new TagImpl(p);
+	private TagImpl (String a_name, TagImpl a_parent) {
+		name = a_name;
+		parent = a_parent;
+		if (parent != null) {
+			parent.addChild(this);
+		}
+	}
+
+	void addChild (TagImpl child) {
+		if (children == null) {
+			children = new TreeSet<Tag>();
+		}
+		children.add(child);
+	}
+
+	@Override
+	public int compareTo (TagImpl other) {
+		int result;
+		if (other.parent == parent) {
+			result = 0;
+		} else if (parent == null) {
+			result = 1;
+		} else if (other.parent == null) {
+			result = -1;
+		} else {
+			result = parent.compareTo(other.parent);
+		}
+		if (result == 0) {
+			result = name.compareTo(other.name);
+		}
+		return result;
+	}
+
+	@Override
+	public List<Tag> getChildren () {
+		List<Tag> result;
+		if (children == null) {
+			result = Collections.emptyList();
+		} else {
+			result = new ArrayList<Tag>(children);
+		}
+		return result;
 	}
 
 	@Override
@@ -57,7 +103,7 @@ class TagImpl implements Tag, Serializable {
 
 	void fillName (StringBuilder b) {
 		if (parent != null) {
-			((TagImpl) parent).fillName(b);
+			(parent).fillName(b);
 			b.append('/');
 		}
 		b.append(name);
@@ -71,21 +117,6 @@ class TagImpl implements Tag, Serializable {
 	@Override
 	public Tag getParent () {
 		return parent;
-	}
-
-	net.cadrian.photofam.xml.rawalbum.Tag getCastorTag () {
-		net.cadrian.photofam.xml.rawalbum.Tag result = new net.cadrian.photofam.xml.rawalbum.Tag();
-		fillCastorTag(result);
-		return result;
-	}
-
-	void fillCastorTag (TagType tag) {
-		tag.setName(name);
-		if (parent != null) {
-			Parent p = new Parent();
-			((TagImpl) parent).fillCastorTag(p);
-			tag.setParent(p);
-		}
 	}
 
 }

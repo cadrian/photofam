@@ -16,6 +16,7 @@
 package net.cadrian.photofam;
 
 import net.cadrian.photofam.services.AuthenticationService;
+import net.cadrian.photofam.services.TagService;
 import net.cadrian.photofam.services.TranslationService;
 
 /**
@@ -32,5 +33,10 @@ public interface Services {
 	 * @return the translation service
 	 */
 	AuthenticationService getAuthenticationService ();
+
+	/**
+	 * @return the tag service
+	 */
+	TagService getTagService ();
 
 }

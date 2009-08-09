@@ -16,6 +16,8 @@
 package net.cadrian.photofam.ui;
 
 import net.cadrian.photofam.Services;
+import net.cadrian.photofam.services.album.Album;
+import net.cadrian.photofam.services.album.Image;
 
 import javax.swing.JPanel;
 
@@ -40,5 +42,17 @@ abstract class UIComponent extends JPanel {
 	 *            the data used to prepare the screen
 	 */
 	abstract void prepare (PanelData a_data);
+
+	/**
+	 * @param a_album
+	 *            the album to show (may be <code>null</code>)
+	 */
+	abstract void showAlbum (Album a_album);
+
+	/**
+	 * @param a_image
+	 *            the image to show (may be <code>null</code>)
+	 */
+	abstract void showImage (Image a_image);
 
 }

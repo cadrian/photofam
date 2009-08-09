@@ -15,6 +15,8 @@
  */
 package net.cadrian.photofam.services.album;
 
+import java.util.List;
+
 /**
  * @author Cyril ADRIAN
  */
@@ -34,5 +36,10 @@ public interface Tag {
 	 * @return the complete name of the tag
 	 */
 	String getCompleteName ();
+
+	/**
+	 * @return the children of this tag; never <code>null</code>.
+	 */
+	List<Tag> getChildren ();
 
 }

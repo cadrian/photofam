@@ -55,6 +55,8 @@ public class Albums implements TreeModel {
 		boolean isLeaf ();
 
 		Icon getIcon ();
+
+		Album getAlbum ();
 	}
 
 	static class AlbumNode implements Node {
@@ -81,7 +83,7 @@ public class Albums implements TreeModel {
 
 		@Override
 		public int getIndexOfChild (Node a_child) {
-			return album.getChildren().indexOf(((AlbumNode) a_child).album);
+			return album.getChildren().indexOf(a_child.getAlbum());
 		}
 
 		@Override
@@ -101,9 +103,14 @@ public class Albums implements TreeModel {
 		}
 
 		@Override
+		public Album getAlbum () {
+			return album;
+		}
+
+		@Override
 		public String toString () {
 			int n = album.getImages(ImageFilter.ALL).size();
-			return (album.isShared() ? "" : "*") + getName() + " (" + n + " photo" + (n > 1 ? "s)" : ")");
+			return getName() + " (" + n + " photo" + (n > 1 ? "s)" : ")");
 		}
 
 	}
@@ -149,6 +156,11 @@ public class Albums implements TreeModel {
 		public Icon getIcon () {
 			URL location = RootNode.class.getClassLoader().getResource("img/user.png");
 			return new ImageIcon(location);
+		}
+
+		@Override
+		public Album getAlbum () {
+			return null;
 		}
 
 		@Override
@@ -211,6 +223,14 @@ public class Albums implements TreeModel {
 		for (TreeModelListener l : listeners) {
 			l.treeStructureChanged(e);
 		}
+	}
+
+	/**
+	 * @param a_path
+	 * @return
+	 */
+	public Album getAlbum (TreePath a_path) {
+		return ((Node) a_path.getLastPathComponent()).getAlbum();
 	}
 
 }

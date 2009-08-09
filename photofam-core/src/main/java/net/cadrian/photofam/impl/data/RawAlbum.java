@@ -21,6 +21,7 @@ import net.cadrian.photofam.services.album.Album;
 import net.cadrian.photofam.services.album.AlbumListener;
 import net.cadrian.photofam.services.album.Image;
 import net.cadrian.photofam.services.album.ImageFilter;
+import net.cadrian.photofam.services.album.Tag;
 import net.cadrian.photofam.xml.DataObject;
 import net.cadrian.photofam.xml.rawalbum.AlbumData;
 import net.cadrian.photofam.xml.rawalbum.AlbumDataType;
@@ -40,11 +41,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Low-level album (underlying shared albums, and private albums)
@@ -54,8 +53,6 @@ import org.slf4j.LoggerFactory;
 public class RawAlbum implements Album, Serializable {
 
 	private static final long serialVersionUID = 5179315224341934149L;
-
-	private static final Logger log = LoggerFactory.getLogger(RawAlbum.class);
 
 	private static final Set<String> extensions = new HashSet<String>();
 	static {
@@ -106,7 +103,7 @@ public class RawAlbum implements Album, Serializable {
 		}
 	}
 
-	RawAlbum (AlbumDataType a_albumData) {
+	RawAlbum (Services services, AlbumDataType a_albumData) {
 		name = a_albumData.getName();
 		owner = a_albumData.getOwner();
 		shared = a_albumData.getShared();
@@ -115,11 +112,11 @@ public class RawAlbum implements Album, Serializable {
 		images = new ArrayList<Image>();
 
 		for (Child child : a_albumData.getChild()) {
-			children.add(new RawAlbum(child));
+			children.add(new RawAlbum(services, child));
 		}
 
 		for (net.cadrian.photofam.xml.rawalbum.Image image : a_albumData.getImage()) {
-			images.add(new ImageImpl(image));
+			images.add(new ImageImpl(services, image));
 		}
 	}
 
@@ -194,6 +191,8 @@ public class RawAlbum implements Album, Serializable {
 	}
 
 	/**
+	 * @param services
+	 *            the services
 	 * @param name
 	 *            the album name
 	 * @param user
@@ -202,15 +201,15 @@ public class RawAlbum implements Album, Serializable {
 	 *            the user password, or <code>null</code> if the album is shared (non-encrypted)
 	 * @return an album known by its name
 	 */
-	public static RawAlbum find (String name, String user, String password) {
+	public static RawAlbum find (Services services, String name, String user, String password) {
 		try {
-			return read(name, user, password);
+			return read(services, name, user, password);
 		} catch (Exception x) {
 			throw new RuntimeException(x);
 		}
 	}
 
-	private static RawAlbum read (String name, String user, String password) throws Exception {
+	private static RawAlbum read (Services services, String name, String user, String password) throws Exception {
 		RawAlbum result = null;
 		boolean shared = password == null;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -226,7 +225,7 @@ public class RawAlbum implements Album, Serializable {
 			GZIPInputStream gzin = new GZIPInputStream(new ByteArrayInputStream(data));
 			AlbumData albumData = DataObject.read(gzin, AlbumData.class);
 			gzin.close();
-			result = new RawAlbum(albumData);
+			result = new RawAlbum(services, albumData);
 		}
 		return result;
 	}
@@ -265,6 +264,15 @@ public class RawAlbum implements Album, Serializable {
 		for (Image img : images) {
 			album.addImage(((ImageImpl) img).getCastorImage());
 		}
+	}
+
+	@Override
+	public List<Tag> getAllTags () {
+		Set<Tag> result = new TreeSet<Tag>();
+		for (Image i : images) {
+			result.addAll(i.getTags());
+		}
+		return new ArrayList<Tag>(result);
 	}
 
 }

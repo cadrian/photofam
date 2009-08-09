@@ -18,6 +18,7 @@ package net.cadrian.photofam.impl;
 import net.cadrian.photofam.Services;
 import net.cadrian.photofam.exception.ConfigurationException;
 import net.cadrian.photofam.services.AuthenticationService;
+import net.cadrian.photofam.services.TagService;
 import net.cadrian.photofam.services.TranslationService;
 
 /**
@@ -28,6 +29,7 @@ public class ServicesImpl implements Services {
 
 	private final TranslationServiceImpl translation;
 	private final AuthenticationServiceImpl authentication;
+	private final TagServiceImpl tag;
 
 	/**
 	 * Constructor
@@ -39,6 +41,7 @@ public class ServicesImpl implements Services {
 			throw new RuntimeException("Could not start the translation service");
 		}
 		authentication = new AuthenticationServiceImpl(this);
+		tag = new TagServiceImpl();
 	}
 
 	@Override
@@ -49,6 +52,11 @@ public class ServicesImpl implements Services {
 	@Override
 	public TranslationService getTranslationService () {
 		return translation;
+	}
+
+	@Override
+	public TagService getTagService () {
+		return tag;
 	}
 
 }
