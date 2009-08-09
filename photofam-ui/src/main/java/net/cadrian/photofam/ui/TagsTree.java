@@ -19,8 +19,10 @@ import net.cadrian.photofam.Services;
 import net.cadrian.photofam.services.album.Album;
 import net.cadrian.photofam.services.album.Image;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 
+import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 
@@ -47,6 +49,17 @@ class TagsTree extends UIComponent {
 		assert SwingUtilities.isEventDispatchThread();
 
 		setPreferredSize(new Dimension(200, 400));
+
+		JScrollPane scroll = new JScrollPane(view);
+		view.setRootVisible(true);
+		view.setEditable(false);
+		view.setScrollsOnExpand(true);
+		view.setShowsRootHandles(false);
+		view.putClientProperty("JTree.lineStyle", "Horizontal");
+		view.setCellRenderer(new TagsTreeCellRenderer());
+
+		setLayout(new BorderLayout());
+		add(scroll, BorderLayout.CENTER);
 	}
 
 	@Override

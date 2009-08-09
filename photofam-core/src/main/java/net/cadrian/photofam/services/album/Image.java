@@ -53,4 +53,16 @@ public interface Image {
 	 */
 	java.awt.Image getImage ();
 
+	/**
+	 * @param a_tag
+	 *            the tag to add
+	 */
+	void addTag (Tag a_tag);
+
+	/**
+	 * @param a_tag
+	 *            the tag to remove
+	 */
+	void removeTag (Tag a_tag);
+
 }

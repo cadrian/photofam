@@ -22,15 +22,14 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 
 /**
  * @author Cyril ADRIAN
- * 
  */
-class AlbumTreeCellRenderer extends DefaultTreeCellRenderer {
+class TagsTreeCellRenderer extends DefaultTreeCellRenderer {
 
 	@Override
 	public Component getTreeCellRendererComponent (JTree a_tree, Object a_value, boolean a_selected, boolean a_expanded,
 			boolean a_leaf, int a_row, boolean a_hasFocus) {
 		super.getTreeCellRendererComponent(a_tree, a_value, a_selected, a_expanded, a_leaf, a_row, a_hasFocus);
-		setIcon(((Albums.Node) a_value).getIcon());
+		setIcon(((Tags.Node) a_value).getIcon());
 		return this;
 	}
 

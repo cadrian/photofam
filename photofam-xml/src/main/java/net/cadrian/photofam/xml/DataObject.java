@@ -111,10 +111,10 @@ public abstract class DataObject {
 	public void write (OutputStream out) throws MarshalException, ValidationException, IOException {
 		Marshaller marshaller = context.createMarshaller();
 		if (log.isDebugEnabled()) {
-			LogWriter logWriter = new LogWriter(new OutputStreamWriter(out));
-			marshaller.setWriter(logWriter);
+			LogWriter debug = new LogWriter(new OutputStreamWriter(out));
+			marshaller.setWriter(debug);
 			marshaller.marshal(this);
-			String dlog = logWriter.getLog();
+			String dlog = debug.getLog();
 			if (dlog.length() > 1024) {
 				dlog = dlog.substring(0, 1021) + "...";
 			}
@@ -149,7 +149,11 @@ public abstract class DataObject {
 		if (log.isDebugEnabled()) {
 			LogReader debug = new LogReader(new InputStreamReader(in));
 			result = (T) unmarshaller.unmarshal(new InputSource(debug));
-			log.debug(debug.getLog());
+			String dlog = debug.getLog();
+			if (dlog.length() > 1024) {
+				dlog = dlog.substring(0, 1021) + "...";
+			}
+			log.debug(dlog);
 		} else {
 			result = (T) unmarshaller.unmarshal(new InputSource(in));
 		}

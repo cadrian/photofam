@@ -24,8 +24,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.imageio.ImageIO;
 
@@ -44,7 +45,7 @@ public class ImageImpl implements Image, Serializable {
 	private final File file;
 	private final String format;
 	private String name;
-	private final List<Tag> tags;
+	private final Set<Tag> tags;
 
 	private transient java.awt.Image data;
 
@@ -64,7 +65,7 @@ public class ImageImpl implements Image, Serializable {
 		int i = name.lastIndexOf('.');
 		format = name.substring(i + 1);
 
-		tags = new ArrayList<Tag>();
+		tags = new TreeSet<Tag>();
 	}
 
 	ImageImpl (Services services, net.cadrian.photofam.xml.rawalbum.Image a_image) {
@@ -72,7 +73,7 @@ public class ImageImpl implements Image, Serializable {
 		name = a_image.getName();
 		format = a_image.getFormat();
 
-		tags = new ArrayList<Tag>();
+		tags = new TreeSet<Tag>();
 
 		TagService t = services.getTagService();
 		for (String tag : a_image.getTag()) {
@@ -122,7 +123,7 @@ public class ImageImpl implements Image, Serializable {
 
 	@Override
 	public List<Tag> getTags () {
-		return Collections.unmodifiableList(tags);
+		return new ArrayList<Tag>(tags);
 	}
 
 	net.cadrian.photofam.xml.rawalbum.Image getCastorImage () {
@@ -134,6 +135,16 @@ public class ImageImpl implements Image, Serializable {
 			result.addTag(tag.getCompleteName());
 		}
 		return result;
+	}
+
+	@Override
+	public void addTag (Tag a_tag) {
+		tags.add(a_tag);
+	}
+
+	@Override
+	public void removeTag (Tag a_tag) {
+		tags.remove(a_tag);
 	}
 
 }

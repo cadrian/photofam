@@ -132,7 +132,11 @@ public class Screen extends JFrame implements ScreenChanges {
 	@Override
 	public void showAlbum (Album a_album) {
 		if (log.isInfoEnabled()) {
-			log.info("Showing album: " + a_album.getName());
+			if (a_album == null) {
+				log.info("Showing no album");
+			} else {
+				log.info("Showing album: " + a_album.getName());
+			}
 		}
 		for (ScreenPanel p : ScreenPanel.values()) {
 			p.showAlbum(a_album);
@@ -142,7 +146,11 @@ public class Screen extends JFrame implements ScreenChanges {
 	@Override
 	public void showImage (Image a_image) {
 		if (log.isInfoEnabled()) {
-			log.info("Showing image: " + a_image.getName());
+			if (a_image == null) {
+				log.info("Showing no image");
+			} else {
+				log.info("Showing image: " + a_image.getName());
+			}
 		}
 		for (ScreenPanel p : ScreenPanel.values()) {
 			p.showImage(a_image);

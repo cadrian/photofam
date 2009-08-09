@@ -34,13 +34,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -92,11 +95,11 @@ public class RawAlbum implements Album, Serializable {
 		shared = a_password == null;
 
 		children = new ArrayList<Album>();
-		images = new ArrayList<Image>();
-
-		addImages(a_directory);
 
 		try {
+			Map<String, Image> allImages = new TreeMap<String, Image>();
+			addImages(a_services, a_directory, a_directory.getCanonicalPath(), allImages);
+			images = new ArrayList<Image>(allImages.values());
 			write(a_password);
 		} catch (Exception x) {
 			throw new UnexpectedException(a_services, x);
@@ -120,23 +123,60 @@ public class RawAlbum implements Album, Serializable {
 		}
 	}
 
-	private void addImages (File dir) {
+	private void addImages (Services services, File dir, String rootdir, Map<String, Image> allImages) throws IOException {
 		assert dir.isDirectory();
 
 		for (File f : dir.listFiles()) {
 			if (f.isDirectory()) {
-				addImages(f);
+				addImages(services, f, rootdir, allImages);
 			} else {
+				String canonical = f.getCanonicalPath();
 				String filename = f.getName().toLowerCase();
 				int i = filename.lastIndexOf('.');
 				if (i != -1) {
 					String ext = filename.substring(i + 1);
 					if (extensions.contains(ext)) {
-						images.add(new ImageImpl(f));
+						if (!allImages.containsKey(canonical)) {
+							allImages.put(canonical, new ImageImpl(f));
+						}
+						assert canonical.startsWith(rootdir);
+						String canonicalTag = cleanTag(canonical.substring(rootdir.length()));
+						if (canonicalTag != null) {
+							allImages.get(canonical).addTag(services.getTagService().getTag(canonicalTag));
+						}
+						String absolute = f.getAbsolutePath();
+						if (canonical != absolute && absolute.startsWith(rootdir)) {
+							// usually a symbolic link
+							String absoluteTag = cleanTag(absolute.substring(rootdir.length()));
+							if (absoluteTag != null) {
+								allImages.get(canonical).addTag(services.getTagService().getTag(absoluteTag));
+							}
+						}
 					}
 				}
 			}
 		}
+	}
+
+	private String cleanTag (String imageRelativePath) {
+		char[] data = imageRelativePath.toCharArray();
+		int lo = 0;
+		int hi = data.length;
+		while (data[lo] == File.separatorChar) {
+			lo++;
+		}
+		while (hi > lo && data[hi - 1] != File.separatorChar) {
+			hi--;
+		}
+		while (hi > lo && data[hi - 1] == File.separatorChar) {
+			hi--;
+		}
+		for (int i = lo; i < hi; i++) {
+			if (data[i] == File.separatorChar) {
+				data[i] = '/';
+			}
+		}
+		return hi == lo ? null : new String(data, lo, hi - lo);
 	}
 
 	@Override

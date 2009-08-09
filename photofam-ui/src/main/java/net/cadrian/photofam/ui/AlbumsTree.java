@@ -67,7 +67,7 @@ class AlbumsTree extends UIComponent {
 		view.setScrollsOnExpand(true);
 		view.setShowsRootHandles(false);
 		view.putClientProperty("JTree.lineStyle", "Horizontal");
-		view.setCellRenderer(new AlbumTreeCellRenderer(model));
+		view.setCellRenderer(new AlbumTreeCellRenderer());
 
 		view.addTreeSelectionListener(new TreeSelectionListener() {
 			@Override
