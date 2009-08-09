@@ -61,6 +61,8 @@ public class Screen extends JFrame implements ScreenChanges {
 	public void init () {
 		assert SwingUtilities.isEventDispatchThread();
 
+		setTitle("PhotoFam");
+
 		Container contentPane = getContentPane();
 		contentPane.setLayout(layout);
 

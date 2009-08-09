@@ -65,4 +65,9 @@ public interface Image {
 	 */
 	void removeTag (Tag a_tag);
 
+	/**
+	 * @return the rotation angle (in degrees) - usually 0, 90, 180, 270
+	 */
+	int getRotation ();
+
 }

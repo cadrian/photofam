@@ -218,15 +218,19 @@ public class Tags implements TreeModel {
 	}
 
 	void setAlbum (Album a_album) {
-		if (log.isInfoEnabled()) {
-			log.info("Album is " + a_album.getName());
+		if (a_album != null) {
+			if (log.isInfoEnabled()) {
+				log.info("Album is " + a_album.getName());
+			}
+			root = new RootNode(a_album);
+		} else {
+			root = null;
 		}
-		root = new RootNode(a_album);
 		fireRootStructureChanged();
 	}
 
 	void fireRootStructureChanged () {
-		TreeModelEvent e = new TreeModelEvent(this, new TreePath(root));
+		TreeModelEvent e = new TreeModelEvent(this, root == null ? null : new TreePath(root));
 		for (TreeModelListener l : listeners) {
 			l.treeStructureChanged(e);
 		}

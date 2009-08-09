@@ -147,4 +147,10 @@ public class ImageImpl implements Image, Serializable {
 		tags.remove(a_tag);
 	}
 
+	@Override
+	public int getRotation () {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }
