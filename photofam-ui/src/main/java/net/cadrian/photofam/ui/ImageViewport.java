@@ -20,15 +20,21 @@ import net.cadrian.photofam.services.album.Image;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.border.BevelBorder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Cyril ADRIAN
  */
 public class ImageViewport extends JComponent {
+
+	private static final Logger log = LoggerFactory.getLogger(ImageViewport.class);
 
 	private Image image;
 
@@ -48,16 +54,57 @@ public class ImageViewport extends JComponent {
 	protected void paintComponent (Graphics g) {
 		super.paintComponent(g);
 		if (g != null && image != null) {
-			Graphics2D scratchGraphics = (Graphics2D) g.create();
+			Graphics2D g2d = (Graphics2D) g.create();
 			try {
-				int angle = image.getRotation();
-				if (angle != 0) {
-					scratchGraphics.rotate(angle * Math.PI / 180, getWidth() / 2, getHeight() / 2);
-				}
-				scratchGraphics.drawImage(image.getImage(), 0, 0, getWidth(), getHeight(), this);
+				paintImage(g2d);
 			} finally {
-				scratchGraphics.dispose();
+				g2d.dispose();
 			}
 		}
+	}
+
+	private void paintImage (Graphics2D g2d) {
+		assert g2d != null;
+		assert image != null;
+
+		java.awt.Image theImage = image.getImage();
+
+		int angle = image.getRotation();
+		if (angle != 0) {
+			g2d.rotate(angle * Math.PI / 180, getWidth() / 2, getHeight() / 2);
+		}
+
+		int imageHeight = theImage.getHeight(this);
+		int imageWidth = theImage.getWidth(this);
+
+		Rectangle rect = g2d.getClipBounds();
+		int h0 = rect.height;
+		int w0 = rect.width;
+		int x, y, w, h;
+
+		double rh = (double) h0 / imageHeight;
+		double rw = (double) w0 / imageWidth;
+		if (rh < rw) {
+			h = (int) (imageHeight * rh + .5);
+			w = (int) (imageWidth * rh + .5);
+		} else {
+			h = (int) (imageHeight * rw + .5);
+			w = (int) (imageWidth * rw + .5);
+		}
+		x = (getWidth() - w) / 2;
+		y = (getHeight() - h) / 2;
+
+		if (log.isDebugEnabled()) {
+			log.debug("Image:     " + imageWidth + "x" + imageHeight + " (rotation: " + angle + "°)");
+			log.debug("Component: " + w0 + "x" + h0);
+			if (rh < rw) {
+				log.debug("Using height scale " + rh);
+			} else {
+				log.debug("Using width scale " + rw);
+			}
+			log.debug("x=" + x + ", y=" + y + ", w=" + w + ", h=" + h);
+		}
+
+		g2d.drawImage(theImage, x, y, w, h, this);
 	}
 }

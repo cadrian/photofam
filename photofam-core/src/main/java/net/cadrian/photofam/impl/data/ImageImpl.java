@@ -20,9 +20,13 @@ import net.cadrian.photofam.services.TagService;
 import net.cadrian.photofam.services.album.Image;
 import net.cadrian.photofam.services.album.Tag;
 
+import java.awt.Graphics;
+import java.awt.image.ImageObserver;
+import java.awt.image.ImageProducer;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -46,8 +50,9 @@ public class ImageImpl implements Image, Serializable {
 	private final String format;
 	private String name;
 	private final Set<Tag> tags;
+	private int rotation;
 
-	private transient java.awt.Image data;
+	private transient WeakReference<java.awt.Image> data;
 
 	/**
 	 * @param a_file
@@ -83,14 +88,45 @@ public class ImageImpl implements Image, Serializable {
 
 	@Override
 	public java.awt.Image getImage () {
-		java.awt.Image result = data;
+		java.awt.Image result = data == null ? null : data.get();
 		if (result == null) {
 			try {
 				result = ImageIO.read(file);
 			} catch (IOException iox) {
-				throw new RuntimeException(iox);
+				result = new java.awt.Image() {
+
+					@Override
+					public int getWidth (ImageObserver a_observer) {
+						// TODO Auto-generated method stub
+						return 0;
+					}
+
+					@Override
+					public ImageProducer getSource () {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public Object getProperty (String a_name, ImageObserver a_observer) {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public int getHeight (ImageObserver a_observer) {
+						// TODO Auto-generated method stub
+						return 0;
+					}
+
+					@Override
+					public Graphics getGraphics () {
+						// TODO Auto-generated method stub
+						return null;
+					}
+				};
 			}
-			data = result;
+			data = new WeakReference<java.awt.Image>(result);
 		}
 		return result;
 	}
@@ -149,8 +185,16 @@ public class ImageImpl implements Image, Serializable {
 
 	@Override
 	public int getRotation () {
-		// TODO Auto-generated method stub
-		return 0;
+		return rotation;
+	}
+
+	@Override
+	public void rotate (int a_angle) {
+		int a = a_angle;
+		while (a < 0) {
+			a += 360;
+		}
+		rotation = (rotation + a) % 360;
 	}
 
 }

@@ -70,4 +70,10 @@ public interface Image {
 	 */
 	int getRotation ();
 
+	/**
+	 * @param a_angle
+	 *            the rotation angle (in degrees)
+	 */
+	void rotate (int a_angle);
+
 }
