@@ -23,6 +23,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 
+import org.castor.xml.XMLProperties;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.Unmarshaller;
@@ -40,6 +41,9 @@ public abstract class DataObject {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private static final XMLContext context = new XMLContext();
+	static {
+		context.setProperty(XMLProperties.LENIENT_INTEGER_VALIDATION, Boolean.toString(true));
+	}
 
 	private static final class LogWriter extends Writer {
 		private final Writer out;

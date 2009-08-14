@@ -15,26 +15,20 @@
  */
 package net.cadrian.photofam.ui;
 
-import net.cadrian.photofam.Services;
-import net.cadrian.photofam.services.album.Album;
-import net.cadrian.photofam.services.album.Image;
+import net.cadrian.photofam.dao.AlbumDAO;
+import net.cadrian.photofam.model.Album;
+import net.cadrian.photofam.model.Image;
+import net.cadrian.photofam.model.Tag;
 
 import java.awt.Container;
+import java.util.ResourceBundle;
+
+import javax.swing.JComponent;
 
 /**
  * @author Cyril ADRIAN
  */
 public enum ScreenPanel {
-
-	/**
-	 * The login screen
-	 */
-	LOGIN(new LoginScreen()),
-
-	/**
-	 * The create user screen
-	 */
-	CREATE_USER(new CreateUserScreen()),
 
 	/**
 	 * The main screen to browse photos
@@ -52,12 +46,12 @@ public enum ScreenPanel {
 		panel = a_panel;
 	}
 
-	void init (Screen a_screen, Services services) {
-		panel.init(a_screen, services);
+	void init (Screen a_screen, AlbumDAO a_dao, ResourceBundle a_bundle) {
+		panel.init(a_screen, a_dao, a_bundle);
 	}
 
 	void addTo (Container container) {
-		container.add(name(), panel);
+		container.add(name(), (JComponent) panel);
 	}
 
 	/**
@@ -69,7 +63,7 @@ public enum ScreenPanel {
 	}
 
 	void requestFocus () {
-		panel.requestFocusInWindow();
+		((JComponent) panel).requestFocusInWindow();
 	}
 
 	/**
@@ -84,6 +78,13 @@ public enum ScreenPanel {
 	 */
 	public void showImage (Image a_image) {
 		panel.showImage(a_image);
+	}
+
+	/**
+	 * @param a_tag
+	 */
+	public void filterTag (Tag a_tag) {
+		panel.filterTag(a_tag);
 	}
 
 }

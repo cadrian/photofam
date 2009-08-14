@@ -15,15 +15,19 @@
  */
 package net.cadrian.photofam.ui;
 
-import net.cadrian.photofam.Services;
-import net.cadrian.photofam.services.TranslationService;
-import net.cadrian.photofam.services.album.Album;
-import net.cadrian.photofam.services.album.Image;
-import net.cadrian.photofam.services.authentication.User;
+import net.cadrian.photofam.dao.AlbumDAO;
+import net.cadrian.photofam.model.Album;
+import net.cadrian.photofam.model.AlbumListener;
+import net.cadrian.photofam.model.Image;
+import net.cadrian.photofam.model.Tag;
 
 import java.awt.CardLayout;
 import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
+import java.util.ResourceBundle;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -41,18 +45,61 @@ public class Screen extends JFrame implements ScreenChanges {
 
 	private File lastDirectory;
 	private final CardLayout layout;
-	private final Services services;
-	private User user;
+	final AlbumDAO dao;
+	private final ResourceBundle bundle;
 
 	/**
-	 * @param a_services
-	 *            te services
+	 * @param a_dao
+	 *            the Album DAO
+	 * @param a_bundle
+	 *            the translation bundle
 	 */
-	public Screen (Services a_services) {
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
+	public Screen (AlbumDAO a_dao, ResourceBundle a_bundle) {
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		layout = new CardLayout();
-		services = a_services;
+		dao = a_dao;
+		bundle = a_bundle;
 		lastDirectory = new File(System.getProperty("user.home"));
+		addWindowListener(new WindowListener() {
+
+			@Override
+			public void windowOpened (WindowEvent a_e) {
+				// nothing
+			}
+
+			@Override
+			public void windowIconified (WindowEvent a_e) {
+				// nothing
+			}
+
+			@Override
+			public void windowDeiconified (WindowEvent a_e) {
+				// nothing
+			}
+
+			@Override
+			public void windowDeactivated (WindowEvent a_e) {
+				// nothing
+			}
+
+			@Override
+			public void windowClosing (WindowEvent a_e) {
+				for (Album a : dao.getAlbums()) {
+					dao.saveAlbum(a);
+				}
+				System.exit(0);
+			}
+
+			@Override
+			public void windowClosed (WindowEvent a_e) {
+				// never called
+			}
+
+			@Override
+			public void windowActivated (WindowEvent a_e) {
+				// nothing
+			}
+		});
 	}
 
 	/**
@@ -67,10 +114,10 @@ public class Screen extends JFrame implements ScreenChanges {
 		contentPane.setLayout(layout);
 
 		for (ScreenPanel p : ScreenPanel.values()) {
-			p.init(this, services);
+			p.init(this, dao, bundle);
 			p.addTo(contentPane);
 		}
-		showPanel(ScreenPanel.LOGIN, null);
+		showPanel(ScreenPanel.BROWSER, null);
 		pack();
 	}
 
@@ -82,49 +129,30 @@ public class Screen extends JFrame implements ScreenChanges {
 	}
 
 	@Override
-	public void checkLogin (String a_login, String a_password) {
-		user = services.getAuthenticationService().getUser(a_login, a_password);
-		BrowserData data = new BrowserData(user);
-		showPanel(ScreenPanel.BROWSER, data);
-	}
-
-	@Override
-	public void createUser (String a_login, String a_password) {
-		CreateUserData data = new CreateUserData(a_login, a_password);
-		showPanel(ScreenPanel.CREATE_USER, data);
-	}
-
-	@Override
-	public void doCreateUser (String a_login, String a_password) {
-		services.getAuthenticationService().createUser(a_login, a_password);
-		showPanel(ScreenPanel.LOGIN, null);
-	}
-
-	@Override
-	public boolean createPrivateAlbum () {
-		return createAlbum(false);
-	}
-
-	@Override
-	public boolean createSharedAlbum () {
-		return createAlbum(true);
-	}
-
-	private boolean createAlbum (boolean shared) {
+	public boolean createAlbum (AlbumListener a_listener) {
 		boolean result = false;
 
-		TranslationService t = services.getTranslationService();
-
 		JFileChooser fileChooser = new JFileChooser(lastDirectory);
-		fileChooser.setDialogTitle(shared ? t.get("screen.createalbum.shared.title") : t.get("screen.createalbum.private.title"));
+		fileChooser.setDialogTitle(bundle.getString("screen.createalbum.title"));
 		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		fileChooser.setMultiSelectionEnabled(false);
 
-		int ret = fileChooser.showDialog(this, t.get("screen.createalbum.button.create"));
+		int ret = fileChooser.showDialog(this, bundle.getString("screen.createalbum.button.create"));
 		if (ret == JFileChooser.APPROVE_OPTION) {
-			File directory = fileChooser.getSelectedFile();
+			final File directory = fileChooser.getSelectedFile();
 			String albumName = directory.getName();
-			user.createAlbum(services, albumName, directory, shared);
+			final Album album = dao.createAlbum(albumName);
+			album.addAlbumListener(a_listener);
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run () {
+					try {
+						Screen.this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+						album.addImages(directory);
+					} finally {
+						Screen.this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+					}
+				}
+			});
 			lastDirectory = directory.getParentFile();
 			result = true;
 		}
@@ -133,29 +161,58 @@ public class Screen extends JFrame implements ScreenChanges {
 
 	@Override
 	public void showAlbum (Album a_album) {
-		if (log.isInfoEnabled()) {
-			if (a_album == null) {
-				log.info("Showing no album");
-			} else {
-				log.info("Showing album: " + a_album.getName());
+		try {
+			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			if (log.isInfoEnabled()) {
+				if (a_album == null) {
+					log.info("Showing no album");
+				} else {
+					log.info("Showing album: " + a_album.getName());
+				}
 			}
-		}
-		for (ScreenPanel p : ScreenPanel.values()) {
-			p.showAlbum(a_album);
+			for (ScreenPanel p : ScreenPanel.values()) {
+				p.showAlbum(a_album);
+			}
+		} finally {
+			setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		}
 	}
 
 	@Override
 	public void showImage (Image a_image) {
-		if (log.isInfoEnabled()) {
-			if (a_image == null) {
-				log.info("Showing no image");
-			} else {
-				log.info("Showing image: " + a_image.getName());
+		try {
+			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			if (log.isInfoEnabled()) {
+				if (a_image == null) {
+					log.info("Showing no image");
+				} else {
+					log.info("Showing image: " + a_image.getName());
+				}
 			}
+			for (ScreenPanel p : ScreenPanel.values()) {
+				p.showImage(a_image);
+			}
+		} finally {
+			setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		}
-		for (ScreenPanel p : ScreenPanel.values()) {
-			p.showImage(a_image);
+	}
+
+	@Override
+	public void filterTag (Tag a_tag) {
+		try {
+			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			if (log.isInfoEnabled()) {
+				if (a_tag == null) {
+					log.info("Filtering no tag");
+				} else {
+					log.info("Filtering tag: " + a_tag.getCompleteName());
+				}
+			}
+			for (ScreenPanel p : ScreenPanel.values()) {
+				p.filterTag(a_tag);
+			}
+		} finally {
+			setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		}
 	}
 

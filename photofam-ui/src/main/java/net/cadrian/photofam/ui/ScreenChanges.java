@@ -15,8 +15,10 @@
  */
 package net.cadrian.photofam.ui;
 
-import net.cadrian.photofam.services.album.Album;
-import net.cadrian.photofam.services.album.Image;
+import net.cadrian.photofam.model.Album;
+import net.cadrian.photofam.model.AlbumListener;
+import net.cadrian.photofam.model.Image;
+import net.cadrian.photofam.model.Tag;
 
 /**
  * Gathers all the callbacks to the screen for user interface changes.
@@ -36,34 +38,10 @@ public interface ScreenChanges {
 	void showPanel (ScreenPanel panel, PanelData data);
 
 	/**
-	 * @param a_login
-	 *            the login
-	 * @param a_password
-	 *            the password
-	 */
-	void checkLogin (String a_login, String a_password);
-
-	/**
-	 * @param a_login
-	 * @param a_password
-	 */
-	void createUser (String a_login, String a_password);
-
-	/**
-	 * @param a_login
-	 * @param a_password
-	 */
-	void doCreateUser (String a_login, String a_password);
-
-	/**
+	 * @param a_listener TODO
 	 * @return <code>true</code> if the album was successfully created, <code>false</code> otherwise.
 	 */
-	boolean createSharedAlbum ();
-
-	/**
-	 * @return <code>true</code> if the album was successfully created, <code>false</code> otherwise.
-	 */
-	boolean createPrivateAlbum ();
+	boolean createAlbum (AlbumListener a_listener);
 
 	/**
 	 * @param a_album
@@ -76,5 +54,11 @@ public interface ScreenChanges {
 	 *            the image to show (may be <code>null</code>)
 	 */
 	void showImage (Image a_image);
+
+	/**
+	 * @param a_tag
+	 *            the tag to filter
+	 */
+	void filterTag (Tag a_tag);
 
 }

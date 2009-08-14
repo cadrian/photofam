@@ -15,13 +15,19 @@
  */
 package net.cadrian.photofam.ui;
 
-import net.cadrian.photofam.services.album.Album;
-import net.cadrian.photofam.services.album.ImageFilter;
-import net.cadrian.photofam.services.authentication.User;
+import net.cadrian.photofam.model.Album;
+import net.cadrian.photofam.model.ImageFilter;
+import net.cadrian.photofam.model.Tag;
 
+import java.awt.Component;
+import java.awt.Graphics;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -38,10 +44,12 @@ import org.slf4j.LoggerFactory;
  */
 public class Albums implements TreeModel {
 
-	private static final Logger log = LoggerFactory.getLogger(Albums.class);
+	static final Logger log = LoggerFactory.getLogger(Albums.class);
 
-	private RootNode root;
+	private volatile RootNode root;
 	private final List<TreeModelListener> listeners = new ArrayList<TreeModelListener>();
+
+	private volatile Collection<Album> albums;
 
 	static interface Node {
 		String getName ();
@@ -56,34 +64,40 @@ public class Albums implements TreeModel {
 
 		Icon getIcon ();
 
-		Album getAlbum ();
+		/**
+		 * @param a_screen
+		 */
+		void onSelect (ScreenChanges a_screen);
 	}
 
-	static class AlbumNode implements Node {
-		private final Album album;
+	static class TagNode implements Node {
+		private final Tag tag;
 
-		AlbumNode (Album a_album) {
-			album = a_album;
+		TagNode (Tag a_tag) {
+			tag = a_tag;
+			if (log.isDebugEnabled()) {
+				log.debug("TagNode - tag: " + a_tag.getCompleteName());
+			}
 		}
 
 		@Override
 		public String getName () {
-			return album.getName();
+			return tag.getName();
 		}
 
 		@Override
 		public int getChildCount () {
-			return album.getChildren().size();
+			return tag.getChildren().size();
 		}
 
 		@Override
 		public Node getChild (int i) {
-			return new AlbumNode(album.getChildren().get(i));
+			return new TagNode(tag.getChildren().get(i));
 		}
 
 		@Override
 		public int getIndexOfChild (Node a_child) {
-			return album.getChildren().indexOf(a_child.getAlbum());
+			return tag.getChildren().indexOf(((TagNode) a_child).getTag());
 		}
 
 		@Override
@@ -93,18 +107,103 @@ public class Albums implements TreeModel {
 
 		@Override
 		public Icon getIcon () {
-			URL location;
-			if (album.isShared()) {
-				location = RootNode.class.getClassLoader().getResource("img/shared-album.png");
-			} else {
-				location = RootNode.class.getClassLoader().getResource("img/private-album.png");
-			}
+			URL location = RootNode.class.getClassLoader().getResource("img/tag.png");
 			return new ImageIcon(location);
 		}
 
 		@Override
-		public Album getAlbum () {
-			return album;
+		public String toString () {
+			return getName();
+		}
+
+		Tag getTag () {
+			return tag;
+		}
+
+		@Override
+		public void onSelect (ScreenChanges a_screen) {
+			a_screen.filterTag(tag);
+		}
+
+	}
+
+	static class AlbumNode implements Node {
+		private final Album album;
+		private final List<Tag> rootTags;
+
+		AlbumNode (Album a_album) {
+			album = a_album;
+			rootTags = listRootTags();
+			if (log.isDebugEnabled()) {
+				log.debug("created AlbumNode " + a_album.getName());
+			}
+		}
+
+		private List<Tag> listRootTags () {
+			List<Tag> result;
+			Set<Tag> roots = new TreeSet<Tag>();
+			for (Tag tag : album.getAllTags()) {
+				Tag p = tag.getParent();
+				while (p != null) {
+					tag = p;
+					p = tag.getParent();
+				}
+				roots.add(tag);
+			}
+			result = new ArrayList<Tag>(roots);
+			if (log.isDebugEnabled()) {
+				log.debug("all tags of " + getName() + ": " + album.getAllTags());
+				log.debug("root tags of " + getName() + ": " + result);
+			}
+			return result;
+		}
+
+		@Override
+		public String getName () {
+			return album.getName();
+		}
+
+		@Override
+		public int getChildCount () {
+			if (rootTags == null) {
+				listRootTags();
+			}
+			int result = rootTags.size();
+			if (log.isDebugEnabled()) {
+				log.debug("AlbumNode " + album.getName() + ": " + (result > 1 ? result + " children" : " one child"));
+			}
+			return result;
+		}
+
+		@Override
+		public Node getChild (int i) {
+			if (rootTags == null) {
+				listRootTags();
+			}
+			TagNode result = new TagNode(rootTags.get(i));
+			if (log.isDebugEnabled()) {
+				log.debug("AlbumNode " + album.getName() + ": child#" + i + " is " + result);
+			}
+			return result;
+		}
+
+		@Override
+		public int getIndexOfChild (Node a_child) {
+			if (rootTags == null) {
+				listRootTags();
+			}
+			return rootTags.indexOf(((TagNode) a_child).getTag());
+		}
+
+		@Override
+		public boolean isLeaf () {
+			return getChildCount() == 0;
+		}
+
+		@Override
+		public Icon getIcon () {
+			URL location = RootNode.class.getClassLoader().getResource("img/album.png");
+			return new ImageIcon(location);
 		}
 
 		@Override
@@ -113,38 +212,47 @@ public class Albums implements TreeModel {
 			return getName() + " (" + n + " photo" + (n > 1 ? "s)" : ")");
 		}
 
+		Album getAlbum () {
+			return album;
+		}
+
+		@Override
+		public void onSelect (ScreenChanges a_screen) {
+			a_screen.showAlbum(album);
+		}
+
 	}
 
 	static class RootNode implements Node {
-		private final User user;
+		private final List<Album> albums;
 
-		RootNode (User a_user) {
-			user = a_user;
+		RootNode (Collection<Album> a_albums) {
+			albums = new ArrayList<Album>(a_albums);
+			Collections.sort(albums);
+			if (log.isDebugEnabled()) {
+				log.debug("RootNode - albums: " + albums);
+			}
 		}
 
 		@Override
 		public String getName () {
-			return user.getIdentifier();
+			return "root";
 		}
 
 		@Override
 		public int getChildCount () {
-			return user.getAlbumNames().size();
+			return albums.size();
 		}
 
 		@Override
 		public Node getChild (int i) {
-			Node result;
-			List<String> names = user.getAlbumNames();
-			result = new AlbumNode(user.getAlbum(names.get(i)));
-			return result;
+			return new AlbumNode(albums.get(i));
 		}
 
 		@Override
 		public int getIndexOfChild (Node a_child) {
-			String name = ((AlbumNode) a_child).getName();
-			List<String> names = user.getAlbumNames();
-			return names.indexOf(name);
+			Album album = ((AlbumNode) a_child).getAlbum();
+			return albums.indexOf(album);
 		}
 
 		@Override
@@ -154,18 +262,33 @@ public class Albums implements TreeModel {
 
 		@Override
 		public Icon getIcon () {
-			URL location = RootNode.class.getClassLoader().getResource("img/user.png");
-			return new ImageIcon(location);
-		}
+			return new Icon() {
 
-		@Override
-		public Album getAlbum () {
-			return null;
+				@Override
+				public void paintIcon (Component a_c, Graphics a_g, int a_x, int a_y) {
+					// nothing
+				}
+
+				@Override
+				public int getIconWidth () {
+					return 0;
+				}
+
+				@Override
+				public int getIconHeight () {
+					return 0;
+				}
+			};
 		}
 
 		@Override
 		public String toString () {
 			return getName();
+		}
+
+		@Override
+		public void onSelect (ScreenChanges a_screen) {
+			assert false;
 		}
 
 	}
@@ -210,27 +333,17 @@ public class Albums implements TreeModel {
 		assert false;
 	}
 
-	void setUser (User a_user) {
-		if (log.isInfoEnabled()) {
-			log.info("User is " + a_user.getIdentifier());
-		}
-		root = new RootNode(a_user);
+	void setAlbums (Collection<Album> a_albums) {
+		albums = a_albums;
 		fireRootStructureChanged();
 	}
 
 	void fireRootStructureChanged () {
+		root = new RootNode(albums);
 		TreeModelEvent e = new TreeModelEvent(this, new TreePath(root));
 		for (TreeModelListener l : listeners) {
 			l.treeStructureChanged(e);
 		}
-	}
-
-	/**
-	 * @param a_path
-	 * @return
-	 */
-	public Album getAlbum (TreePath a_path) {
-		return ((Node) a_path.getLastPathComponent()).getAlbum();
 	}
 
 }

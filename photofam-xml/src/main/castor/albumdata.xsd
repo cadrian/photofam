@@ -5,13 +5,6 @@
     		<element name="name" type="string" maxOccurs="1"
     			minOccurs="1">
     		</element>
-    		<element name="owner" type="string" maxOccurs="1"
-    			minOccurs="1">
-    		</element>
-    		<element name="shared" type="boolean" maxOccurs="1" minOccurs="1"></element>
-    		<element name="child" type="tns:AlbumDataType"
-    			maxOccurs="unbounded" minOccurs="0">
-    		</element>
     		<element name="image" type="tns:ImageType"
     			maxOccurs="unbounded" minOccurs="0">
     		</element>
@@ -29,6 +22,10 @@
     		<element name="format" type="string" maxOccurs="1"
     			minOccurs="1">
     		</element>
+    		<element name="rotation" type="int" maxOccurs="1"
+    			minOccurs="1">
+    		</element>
+    		<element name="visible" type="boolean" maxOccurs="1" minOccurs="1"></element>
     		<element name="tag" type="string" maxOccurs="unbounded"
     			minOccurs="0">
     		</element>

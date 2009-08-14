@@ -15,27 +15,28 @@
  */
 package net.cadrian.photofam.ui;
 
-import net.cadrian.photofam.Services;
-import net.cadrian.photofam.services.album.Album;
-import net.cadrian.photofam.services.album.Image;
+import net.cadrian.photofam.dao.AlbumDAO;
+import net.cadrian.photofam.model.Album;
+import net.cadrian.photofam.model.Image;
+import net.cadrian.photofam.model.Tag;
 
-import javax.swing.JPanel;
+import java.util.ResourceBundle;
 
 /**
  * @author Cyril ADRIAN
  */
-@SuppressWarnings("serial")
-abstract class UIComponent extends JPanel {
+interface UIComponent {
 
 	/**
 	 * Component initialization (in dispatch tread)
 	 * 
 	 * @param a_screen
 	 *            the screen
-	 * @param a_services
-	 *            the services
+	 * @param a_dao TODO
+	 * @param a_bundle
+	 *            TODO
 	 */
-	abstract void init (ScreenChanges a_screen, Services a_services);
+	abstract void init (ScreenChanges a_screen, AlbumDAO a_dao, ResourceBundle a_bundle);
 
 	/**
 	 * @param a_data
@@ -54,5 +55,11 @@ abstract class UIComponent extends JPanel {
 	 *            the image to show (may be <code>null</code>)
 	 */
 	abstract void showImage (Image a_image);
+
+	/**
+	 * @param a_tag
+	 *            the tag to filter
+	 */
+	abstract void filterTag (Tag a_tag);
 
 }

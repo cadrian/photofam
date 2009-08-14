@@ -15,27 +15,26 @@
  */
 package net.cadrian.photofam.ui;
 
-import net.cadrian.photofam.Services;
-import net.cadrian.photofam.services.TranslationService;
-import net.cadrian.photofam.services.album.Album;
-import net.cadrian.photofam.services.album.Image;
+import net.cadrian.photofam.dao.AlbumDAO;
+import net.cadrian.photofam.model.Album;
+import net.cadrian.photofam.model.Image;
+import net.cadrian.photofam.model.Tag;
 
 import java.awt.BorderLayout;
+import java.util.ResourceBundle;
 
-import javax.swing.JTabbedPane;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 /**
  * @author Cyril ADRIAN
  */
-class BrowserScreen extends UIComponent {
+class BrowserScreen extends JPanel implements UIComponent {
 
 	private final AlbumsTree albums;
 	private final Toolbar toolbar;
 	private final ImageViewer viewer;
 	private final Thumbnails thumbnails;
-	private final TagsTree tags;
-	private final JTabbedPane tabs;
 
 	/**
 	 * Constructor
@@ -45,58 +44,52 @@ class BrowserScreen extends UIComponent {
 		toolbar = new Toolbar();
 		viewer = new ImageViewer();
 		thumbnails = new Thumbnails();
-		tags = new TagsTree();
-		tabs = new JTabbedPane();
 	}
 
 	@Override
-	void init (ScreenChanges a_screen, Services services) {
+	public void init (ScreenChanges a_screen, AlbumDAO a_dao, ResourceBundle a_bundle) {
 		assert SwingUtilities.isEventDispatchThread();
-		albums.init(a_screen, services);
-		toolbar.init(a_screen, services);
-		viewer.init(a_screen, services);
-		thumbnails.init(a_screen, services);
-		tags.init(a_screen, services);
+		albums.init(a_screen, a_dao, a_bundle);
+		toolbar.init(a_screen, a_dao, a_bundle);
+		viewer.init(a_screen, a_dao, a_bundle);
+		thumbnails.init(a_screen, a_dao, a_bundle);
+		// TODO exif reading to get the photo date and other metadata
 
 		setLayout(new BorderLayout());
 
-		TranslationService t = services.getTranslationService();
-
-		tabs.add(t.get("browserscreen.tab.albums"), albums);
-		tabs.add(t.get("browserscreen.tab.tags"), tags);
-
-		add(tabs, BorderLayout.WEST);
+		add(albums, BorderLayout.WEST);
 		add(viewer, BorderLayout.CENTER);
 		add(thumbnails, BorderLayout.EAST);
 		add(toolbar, BorderLayout.SOUTH);
 	}
 
 	@Override
-	void prepare (PanelData a_data) {
-		assert a_data instanceof BrowserData;
-
-		albums.prepare(a_data);
-		tags.prepare(a_data);
-
-		tabs.setSelectedIndex(0);
+	public void prepare (PanelData a_data) {
+		assert a_data == null;
 	}
 
 	@Override
-	void showAlbum (Album a_album) {
+	public void showAlbum (Album a_album) {
 		albums.showAlbum(a_album);
 		toolbar.showAlbum(a_album);
 		viewer.showAlbum(a_album);
 		thumbnails.showAlbum(a_album);
-		tags.showAlbum(a_album);
 	}
 
 	@Override
-	void showImage (Image a_image) {
+	public void showImage (Image a_image) {
 		albums.showImage(a_image);
 		toolbar.showImage(a_image);
 		viewer.showImage(a_image);
 		thumbnails.showImage(a_image);
-		tags.showImage(a_image);
+	}
+
+	@Override
+	public void filterTag (Tag a_tag) {
+		albums.filterTag(a_tag);
+		toolbar.filterTag(a_tag);
+		viewer.filterTag(a_tag);
+		thumbnails.filterTag(a_tag);
 	}
 
 }

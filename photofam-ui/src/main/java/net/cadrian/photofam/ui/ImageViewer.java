@@ -15,23 +15,30 @@
  */
 package net.cadrian.photofam.ui;
 
-import net.cadrian.photofam.Services;
-import net.cadrian.photofam.services.album.Album;
-import net.cadrian.photofam.services.album.Image;
-import net.cadrian.photofam.services.album.ImageFilter;
+import net.cadrian.photofam.dao.AlbumDAO;
+import net.cadrian.photofam.model.Album;
+import net.cadrian.photofam.model.Image;
+import net.cadrian.photofam.model.ImageFilter;
+import net.cadrian.photofam.model.Tag;
 
 import java.awt.BorderLayout;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ResourceBundle;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
@@ -39,7 +46,7 @@ import javax.swing.SwingUtilities;
 /**
  * @author Cyril ADRIAN
  */
-class ImageViewer extends UIComponent {
+class ImageViewer extends JPanel implements UIComponent {
 
 	private ScreenChanges screen;
 	private String noImageMessage;
@@ -48,11 +55,11 @@ class ImageViewer extends UIComponent {
 	private final JLabel imageName = new JLabel();
 	private Album album;
 	private List<Image> images = Collections.emptyList();
-	private int currentImage;
+	private int currentImageIndex;
 	private ImageFilter filter;
 
 	@Override
-	void init (ScreenChanges a_screen, Services services) {
+	public void init (ScreenChanges a_screen, AlbumDAO a_dao, ResourceBundle a_bundle) {
 		assert SwingUtilities.isEventDispatchThread();
 
 		screen = a_screen;
@@ -73,6 +80,7 @@ class ImageViewer extends UIComponent {
 		JToolBar tools = new JToolBar();
 		add(tools, BorderLayout.SOUTH);
 		tools.add(toolButton(new AbstractAction(null, new ImageIcon(firstImageLocation)) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed (ActionEvent a_e) {
@@ -80,6 +88,7 @@ class ImageViewer extends UIComponent {
 			}
 		}));
 		tools.add(toolButton(new AbstractAction(null, new ImageIcon(previousImageLocation)) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed (ActionEvent a_e) {
@@ -87,6 +96,7 @@ class ImageViewer extends UIComponent {
 			}
 		}));
 		tools.add(toolButton(new AbstractAction(null, new ImageIcon(nextImageLocation)) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed (ActionEvent a_e) {
@@ -94,6 +104,7 @@ class ImageViewer extends UIComponent {
 			}
 		}));
 		tools.add(toolButton(new AbstractAction(null, new ImageIcon(lastImageLocation)) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed (ActionEvent a_e) {
@@ -101,12 +112,15 @@ class ImageViewer extends UIComponent {
 			}
 		}));
 		tools.add(new JSeparator(JSeparator.VERTICAL) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void paintComponent (Graphics a_g) {
 				// nothing
 			}
 		});
 		tools.add(toolButton(new AbstractAction(null, new ImageIcon(rotateLeftLocation)) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed (ActionEvent a_e) {
@@ -114,6 +128,7 @@ class ImageViewer extends UIComponent {
 			}
 		}));
 		tools.add(toolButton(new AbstractAction(null, new ImageIcon(rotateRightLocation)) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed (ActionEvent a_e) {
@@ -121,6 +136,7 @@ class ImageViewer extends UIComponent {
 			}
 		}));
 		tools.add(toolButton(new AbstractAction(null, new ImageIcon(tagsLocation)) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed (ActionEvent a_e) {
@@ -129,12 +145,15 @@ class ImageViewer extends UIComponent {
 			}
 		}));
 		tools.add(new JSeparator(JSeparator.VERTICAL) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void paintComponent (Graphics a_g) {
 				// nothing
 			}
 		});
 		tools.add(toolButton(new AbstractAction(null, new ImageIcon(deleteLocation)) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed (ActionEvent a_e) {
@@ -142,7 +161,7 @@ class ImageViewer extends UIComponent {
 			}
 		}));
 
-		noImageMessage = services.getTranslationService().get("imageviewer.label.noimage");
+		noImageMessage = a_bundle.getString("imageviewer.label.noimage");
 		imageName.setHorizontalAlignment(JLabel.CENTER);
 		add(imageName, BorderLayout.NORTH);
 		imageName.setText(noImageMessage);
@@ -156,12 +175,12 @@ class ImageViewer extends UIComponent {
 	}
 
 	@Override
-	void prepare (PanelData a_data) {
+	public void prepare (PanelData a_data) {
 		assert a_data == null;
 	}
 
 	@Override
-	void showAlbum (Album a_album) {
+	public void showAlbum (Album a_album) {
 		album = a_album;
 		filter = ImageFilter.ALL;
 		if (a_album == null) {
@@ -173,10 +192,45 @@ class ImageViewer extends UIComponent {
 	}
 
 	@Override
-	void showImage (Image a_image) {
+	public void filterTag (final Tag a_tag) {
+		filter = new ImageFilter() {
+
+			@Override
+			public boolean accept (Image a_image) {
+				boolean result = false;
+				Collection<Tag> tags = a_image.getTags();
+				Set<Tag> cache = new HashSet<Tag>();
+				Iterator<Tag> i = tags.iterator();
+				while (!result && i.hasNext()) {
+					Tag imageTag = i.next();
+					while (!result && imageTag != null && !cache.contains(imageTag)) {
+						result = a_tag.equals(imageTag);
+						if (!result) {
+							cache.add(imageTag);
+							imageTag = imageTag.getParent();
+						}
+					}
+				}
+				return result;
+			}
+		};
+		if (album != null) {
+			Image currentImage = images.get(currentImageIndex);
+			images = album.getImages(filter);
+			if (!images.contains(currentImage)) {
+				showFirstImage();
+			} else {
+				// redisplay because the viewport title and the toolbar buttons may change
+				screen.showImage(currentImage);
+			}
+		}
+	}
+
+	@Override
+	public void showImage (Image a_image) {
 		viewport.showImage(a_image);
 		if (a_image != null) {
-			imageName.setText(a_image.getName() + " (" + (currentImage + 1) + " / " + images.size() + ")");
+			imageName.setText(a_image.getName() + " (" + (currentImageIndex + 1) + " / " + images.size() + ")");
 		} else {
 			imageName.setText(noImageMessage);
 		}
@@ -184,7 +238,7 @@ class ImageViewer extends UIComponent {
 
 	private void showCurrentImage (int c) {
 		if (!images.isEmpty()) {
-			currentImage = c;
+			currentImageIndex = c;
 			screen.showImage(images.get(c));
 		} else {
 			screen.showImage(null);
@@ -196,14 +250,14 @@ class ImageViewer extends UIComponent {
 	}
 
 	void showPreviousImage () {
-		if (currentImage > 0) {
-			showCurrentImage(currentImage - 1);
+		if (currentImageIndex > 0) {
+			showCurrentImage(currentImageIndex - 1);
 		}
 	}
 
 	void showNextImage () {
-		if (currentImage < images.size()) {
-			showCurrentImage(currentImage + 1);
+		if (currentImageIndex < images.size() - 1) {
+			showCurrentImage(currentImageIndex + 1);
 		}
 	}
 
@@ -213,20 +267,20 @@ class ImageViewer extends UIComponent {
 
 	void rotateLeft () {
 		if (!images.isEmpty()) {
-			images.get(currentImage).rotate(-90);
-			showCurrentImage(currentImage);
+			images.get(currentImageIndex).rotate(-90);
+			showCurrentImage(currentImageIndex);
 		}
 	}
 
 	void rotateRight () {
 		if (!images.isEmpty()) {
-			images.get(currentImage).rotate(90);
-			showCurrentImage(currentImage);
+			images.get(currentImageIndex).rotate(90);
+			showCurrentImage(currentImageIndex);
 		}
 	}
 
 	void deleteImage () {
-		album.remove(images.get(currentImage));
+		images.get(currentImageIndex).setVisible(false);
 		images = album.getImages(filter);
 	}
 

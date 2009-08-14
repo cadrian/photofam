@@ -15,7 +15,7 @@
  */
 package net.cadrian.photofam.ui;
 
-import net.cadrian.photofam.services.album.Image;
+import net.cadrian.photofam.model.Image;
 
 import java.awt.Dimension;
 import java.awt.Graphics;

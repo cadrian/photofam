@@ -15,10 +15,15 @@
  */
 package net.cadrian.photofam;
 
-import net.cadrian.photofam.impl.ServicesImpl;
+import net.cadrian.photofam.core.dao.AlbumDAOImpl;
+import net.cadrian.photofam.dao.AlbumDAO;
 import net.cadrian.photofam.ui.Screen;
 
+import java.util.ResourceBundle;
+
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  * @author Cyril ADRIAN
@@ -33,14 +38,30 @@ public class PhotoFam {
 	 *             if an error occurs during startup
 	 */
 	public static void main (String... args) throws Exception {
-		Services services = new ServicesImpl();
-		final Screen screen = new Screen(services);
+		setNativeLAF();
+		AlbumDAO dao = new AlbumDAOImpl();
+		final ResourceBundle bundle = ResourceBundle.getBundle("photofam");
+		final Screen screen = new Screen(dao, bundle);
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run () {
 				screen.init();
 				screen.setVisible(true);
 			}
 		});
+	}
+
+	private static void setNativeLAF () throws Exception {
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (ClassNotFoundException x) {
+			throw x;
+		} catch (InstantiationException x) {
+			throw x;
+		} catch (IllegalAccessException x) {
+			throw x;
+		} catch (UnsupportedLookAndFeelException x) {
+			x.printStackTrace(); // ignored
+		}
 	}
 
 }

@@ -15,27 +15,30 @@
  */
 package net.cadrian.photofam.ui;
 
-import net.cadrian.photofam.Services;
+import net.cadrian.photofam.dao.AlbumDAO;
 import net.cadrian.photofam.exception.PhotoFamException;
-import net.cadrian.photofam.services.album.Album;
-import net.cadrian.photofam.services.album.Image;
+import net.cadrian.photofam.model.Album;
+import net.cadrian.photofam.model.AlbumListener;
+import net.cadrian.photofam.model.Image;
+import net.cadrian.photofam.model.Tag;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.net.URL;
+import java.util.ResourceBundle;
 
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.TreePath;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +46,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Cyril ADRIAN
  */
-class AlbumsTree extends UIComponent {
+class AlbumsTree extends JPanel implements UIComponent, AlbumListener {
 
 	static final Logger log = LoggerFactory.getLogger(AlbumsTree.class);
 
@@ -56,96 +59,104 @@ class AlbumsTree extends UIComponent {
 	}
 
 	@Override
-	void init (final ScreenChanges a_screen, final Services services) {
+	public void init (final ScreenChanges a_screen, final AlbumDAO a_dao, final ResourceBundle a_bundle) {
 		assert SwingUtilities.isEventDispatchThread();
 
-		setPreferredSize(new Dimension(200, 400));
+		setPreferredSize(new Dimension(300, 400));
 
 		JScrollPane scroll = new JScrollPane(view);
-		view.setRootVisible(true);
+		view.setRootVisible(false);
 		view.setEditable(false);
 		view.setScrollsOnExpand(true);
-		view.setShowsRootHandles(false);
+		view.setShowsRootHandles(true);
 		view.putClientProperty("JTree.lineStyle", "Horizontal");
 		view.setCellRenderer(new AlbumTreeCellRenderer());
 
 		view.addTreeSelectionListener(new TreeSelectionListener() {
 			@Override
 			public void valueChanged (TreeSelectionEvent e) {
-				a_screen.showAlbum(model.getAlbum(e.getPath()));
+				for (Object o : e.getPath().getPath()) {
+					((Albums.Node) o).onSelect(a_screen);
+				}
 			}
 		});
 
-		URL addPrivateImage = AlbumsTree.class.getClassLoader().getResource("img/private-album.png");
-		URL addSharedImage = AlbumsTree.class.getClassLoader().getResource("img/shared-album.png");
+		URL createAlbumImage = AlbumsTree.class.getClassLoader().getResource("img/create-album.png");
 
 		JToolBar tools = new JToolBar();
-		JButton addPrivate = new JButton(new AbstractAction(null, new ImageIcon(addPrivateImage)) {
+		JButton createAlbum = new JButton(new AbstractAction(null, new ImageIcon(createAlbumImage)) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed (ActionEvent a_e) {
-				try {
-					if (a_screen.createPrivateAlbum()) {
-						model.fireRootStructureChanged();
-					}
-				} catch (PhotoFamException pfx) {
-					log.error(pfx.getMessage(), pfx);
-					JOptionPane.showMessageDialog(AlbumsTree.this, pfx.getMessage(), services.getTranslationService().get("error"),
-							JOptionPane.ERROR_MESSAGE);
-				} catch (RuntimeException rx) {
-					log.error(rx.getMessage(), rx);
-					JOptionPane.showMessageDialog(AlbumsTree.this, rx.getMessage(), services.getTranslationService().get("error"),
-							JOptionPane.ERROR_MESSAGE);
-				}
+				createAlbum(a_screen, a_dao, a_bundle);
 			}
 		});
-		JButton addShared = new JButton(new AbstractAction(null, new ImageIcon(addSharedImage)) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed (ActionEvent a_e) {
-				try {
-					if (a_screen.createSharedAlbum()) {
-						model.fireRootStructureChanged();
-					}
-				} catch (PhotoFamException pfx) {
-					log.error(pfx.getMessage(), pfx);
-					JOptionPane.showMessageDialog(AlbumsTree.this, pfx.getMessage(), services.getTranslationService().get("error"),
-							JOptionPane.ERROR_MESSAGE);
-				} catch (RuntimeException rx) {
-					log.error(rx.getMessage(), rx);
-					JOptionPane.showMessageDialog(AlbumsTree.this, rx.getMessage(), services.getTranslationService().get("error"),
-							JOptionPane.ERROR_MESSAGE);
-				}
-			}
-		});
-		tools.add(addPrivate);
-		tools.add(addShared);
+		createAlbum.setBorderPainted(false);
+		createAlbum.setOpaque(false);
+		tools.add(createAlbum);
 
 		setLayout(new BorderLayout());
 		add(scroll, BorderLayout.CENTER);
 		add(tools, BorderLayout.SOUTH);
+
+		model.setAlbums(a_dao.getAlbums());
 	}
 
 	@Override
-	void prepare (PanelData a_data) {
-		assert a_data instanceof BrowserData;
-		model.setUser(((BrowserData) a_data).getUser());
+	public void prepare (PanelData a_data) {
+		assert a_data == null;
 	}
 
 	@Override
-	void showAlbum (Album a_album) {
-		TreePath path = view.getSelectionPath();
-		Album a = model.getAlbum(path);
-		if (a_album != a) {
-			view.removeSelectionPath(path);
+	public void showAlbum (Album a_album) {
+		// nothing to do
+	}
+
+	@Override
+	public void showImage (Image a_image) {
+		// don't care (don't manage individual images)
+	}
+
+	@Override
+	public void filterTag (Tag a_tag) {
+		// don't care (don't manage tags)
+	}
+
+	void createAlbum (ScreenChanges a_screen, AlbumDAO a_dao, ResourceBundle a_bundle) {
+		try {
+			if (a_screen.createAlbum(AlbumsTree.this)) {
+				model.setAlbums(a_dao.getAlbums());
+				model.fireRootStructureChanged();
+			}
+		} catch (PhotoFamException pfx) {
+			log.error(pfx.getMessage(), pfx);
+			JOptionPane
+					.showMessageDialog(AlbumsTree.this, pfx.getMessage(), a_bundle.getString("error"), JOptionPane.ERROR_MESSAGE);
+		} catch (RuntimeException rx) {
+			log.error(rx.getMessage(), rx);
+			JOptionPane.showMessageDialog(AlbumsTree.this, rx.getMessage(), a_bundle.getString("error"), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
+	// AlbumListener implementation
+
 	@Override
-	void showImage (Image a_image) {
-		// don't care (don't manage individual images)
+	public void albumImageAdded (Album a_album, Image a_image) {
+		// nothing
+	}
+
+	@Override
+	public void albumNameChanged (Album a_album, String a_oldName) {
+		model.fireRootStructureChanged();
+	}
+
+	@Override
+	public void albumImagesAdded (Album a_album) {
+		if (log.isDebugEnabled()) {
+			log.debug("albumImagesAdded", new Exception("TRACE"));
+		}
+		model.fireRootStructureChanged();
 	}
 
 }

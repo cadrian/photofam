@@ -11,5 +11,7 @@
   	<module>photofam-core</module>
   	<module>photofam-ui</module>
   	<module>photofam-xml</module>
+  	<module>photofam-client</module>
+  	<module>photofam-model</module>
   </modules>
 </project>

@@ -15,35 +15,45 @@
  */
 package net.cadrian.photofam.ui;
 
-import net.cadrian.photofam.Services;
-import net.cadrian.photofam.services.album.Album;
-import net.cadrian.photofam.services.album.Image;
+import net.cadrian.photofam.dao.AlbumDAO;
+import net.cadrian.photofam.model.Album;
+import net.cadrian.photofam.model.Image;
+import net.cadrian.photofam.model.Tag;
 
+import java.util.ResourceBundle;
+
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 /**
  * @author Cyril ADRIAN
  */
-class SlideshowScreen extends UIComponent {
+class SlideshowScreen extends JPanel implements UIComponent {
 
 	@Override
-	void init (ScreenChanges a_screen, Services services) {
+	public void init (ScreenChanges a_screen, AlbumDAO a_dao, ResourceBundle a_bundle) {
 		assert SwingUtilities.isEventDispatchThread();
 	}
 
 	@Override
-	void prepare (PanelData a_data) {
+	public void prepare (PanelData a_data) {
 		assert a_data == null;
 	}
 
 	@Override
-	void showAlbum (Album a_album) {
+	public void showAlbum (Album a_album) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	void showImage (Image a_image) {
+	public void showImage (Image a_image) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void filterTag (Tag a_tag) {
 		// TODO Auto-generated method stub
 
 	}

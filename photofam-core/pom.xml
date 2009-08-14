@@ -51,5 +51,10 @@
 			<artifactId>photofam-xml</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>net.cadrian.photofam</groupId>
+			<artifactId>photofam-model</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 </project>
