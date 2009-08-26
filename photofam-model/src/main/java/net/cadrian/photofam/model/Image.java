@@ -59,6 +59,14 @@ public interface Image {
 	java.awt.Image getImage ();
 
 	/**
+	 * @param size
+	 *            the length (in pixels) of the square containing the thumbnail
+	 * 
+	 * @return the thumbnail data of the image; never <code>null</code>.
+	 */
+	java.awt.Image getThumbnail (int size);
+
+	/**
 	 * @param a_tagName
 	 *            the complete name of the tag to add
 	 * 

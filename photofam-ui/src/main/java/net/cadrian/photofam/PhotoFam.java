@@ -38,6 +38,7 @@ public class PhotoFam {
 	 *             if an error occurs during startup
 	 */
 	public static void main (String... args) throws Exception {
+		System.out.println("let's go");
 		setNativeLAF();
 		AlbumDAO dao = new AlbumDAOImpl();
 		final ResourceBundle bundle = ResourceBundle.getBundle("photofam");

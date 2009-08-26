@@ -72,24 +72,24 @@ class BrowserScreen extends JPanel implements UIComponent {
 	public void showAlbum (Album a_album) {
 		albums.showAlbum(a_album);
 		toolbar.showAlbum(a_album);
-		viewer.showAlbum(a_album);
 		thumbnails.showAlbum(a_album);
+		viewer.showAlbum(a_album);
 	}
 
 	@Override
 	public void showImage (Image a_image) {
 		albums.showImage(a_image);
 		toolbar.showImage(a_image);
-		viewer.showImage(a_image);
 		thumbnails.showImage(a_image);
+		viewer.showImage(a_image);
 	}
 
 	@Override
 	public void filterTag (Tag a_tag) {
 		albums.filterTag(a_tag);
 		toolbar.filterTag(a_tag);
-		viewer.filterTag(a_tag);
 		thumbnails.filterTag(a_tag);
+		viewer.filterTag(a_tag);
 	}
 
 }

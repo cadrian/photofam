@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +58,7 @@ public class AlbumImpl implements Album {
 	private String name;
 	private final transient List<AlbumListener> albumListeners = new ArrayList<AlbumListener>();
 	private final transient List<ImageAlbumListener> imageAlbumListeners = new ArrayList<ImageAlbumListener>();
-	private final Map<String, ImageImpl> images = new HashMap<String, ImageImpl>();
+	private final Map<String, ImageImpl> images = new TreeMap<String, ImageImpl>();
 	private final Map<String, TagImpl> allTags = new TreeMap<String, TagImpl>(new Comparator<String>() {
 		@Override
 		public int compare (String s1, String s2) {

@@ -20,11 +20,9 @@ import net.cadrian.photofam.model.Album;
 import net.cadrian.photofam.model.Image;
 import net.cadrian.photofam.model.Tag;
 
-import java.awt.Graphics;
-import java.awt.image.ImageObserver;
-import java.awt.image.ImageProducer;
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Collections;
@@ -52,6 +50,8 @@ class ImageImpl implements Image {
 	private boolean visible;
 
 	private transient WeakReference<java.awt.Image> imageCache;
+	private transient SoftReference<java.awt.Image> thumbnailCache;
+	private transient int thumbnailSize;
 
 	/**
 	 * @param a_album
@@ -131,35 +131,37 @@ class ImageImpl implements Image {
 			try {
 				result = ImageIO.read(file);
 			} catch (IOException iox) {
-				result = new java.awt.Image() {
-
-					@Override
-					public int getWidth (ImageObserver a_observer) {
-						return 0;
-					}
-
-					@Override
-					public ImageProducer getSource () {
-						return null;
-					}
-
-					@Override
-					public Object getProperty (String a_name, ImageObserver a_observer) {
-						return null;
-					}
-
-					@Override
-					public int getHeight (ImageObserver a_observer) {
-						return 0;
-					}
-
-					@Override
-					public Graphics getGraphics () {
-						return null;
-					}
-				};
+				log.info("Could not load " + file, iox);
 			}
-			imageCache = new WeakReference<java.awt.Image>(result);
+			imageCache = result == null ? null : new WeakReference<java.awt.Image>(result);
+		}
+		return result;
+	}
+
+	@Override
+	public java.awt.Image getThumbnail (int a_size) {
+		java.awt.Image result = null;
+		if (a_size == thumbnailSize) {
+			result = thumbnailCache == null ? null : thumbnailCache.get();
+		}
+		if (result == null) {
+			java.awt.Image image = getImage();
+
+			if (image != null) {
+				int imageWidth = image.getWidth(null);
+				int imageHeight = image.getHeight(null);
+				double scale;
+				if (imageWidth > imageHeight) {
+					scale = a_size / (double) imageWidth;
+				} else {
+					scale = a_size / (double) imageHeight;
+				}
+				int scaledWidth = (int) (scale * imageWidth);
+				int scaledHeight = (int) (scale * imageHeight);
+				result = image.getScaledInstance(scaledWidth, scaledHeight, java.awt.Image.SCALE_SMOOTH);
+			}
+			thumbnailCache = new SoftReference<java.awt.Image>(result);
+			thumbnailSize = a_size;
 		}
 		return result;
 	}
@@ -252,6 +254,11 @@ class ImageImpl implements Image {
 			result.addTag(tag.getCompleteName());
 		}
 		return result;
+	}
+
+	@Override
+	public String toString () {
+		return file.toString();
 	}
 
 }

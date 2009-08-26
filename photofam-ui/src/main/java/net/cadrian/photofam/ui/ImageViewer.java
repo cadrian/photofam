@@ -25,13 +25,9 @@ import java.awt.BorderLayout;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.net.URL;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -193,27 +189,7 @@ class ImageViewer extends JPanel implements UIComponent {
 
 	@Override
 	public void filterTag (final Tag a_tag) {
-		filter = new ImageFilter() {
-
-			@Override
-			public boolean accept (Image a_image) {
-				boolean result = false;
-				Collection<Tag> tags = a_image.getTags();
-				Set<Tag> cache = new HashSet<Tag>();
-				Iterator<Tag> i = tags.iterator();
-				while (!result && i.hasNext()) {
-					Tag imageTag = i.next();
-					while (!result && imageTag != null && !cache.contains(imageTag)) {
-						result = a_tag.equals(imageTag);
-						if (!result) {
-							cache.add(imageTag);
-							imageTag = imageTag.getParent();
-						}
-					}
-				}
-				return result;
-			}
-		};
+		filter = new TagImageFilter(a_tag);
 		if (album != null) {
 			Image currentImage = images.get(currentImageIndex);
 			images = album.getImages(filter);
@@ -230,8 +206,10 @@ class ImageViewer extends JPanel implements UIComponent {
 	public void showImage (Image a_image) {
 		viewport.showImage(a_image);
 		if (a_image != null) {
+			currentImageIndex = images.indexOf(a_image);
 			imageName.setText(a_image.getName() + " (" + (currentImageIndex + 1) + " / " + images.size() + ")");
 		} else {
+			currentImageIndex = -1;
 			imageName.setText(noImageMessage);
 		}
 	}
