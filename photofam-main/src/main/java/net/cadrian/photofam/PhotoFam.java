@@ -39,9 +39,6 @@ public class PhotoFam {
 	/**
 	 * @param args
 	 *            command line arguments
-	 * 
-	 * @throws Exception
-	 *             if an error occurs during startup
 	 */
 	public static void main (String... args) {
 		try {
@@ -59,6 +56,7 @@ public class PhotoFam {
 		} catch (Exception x) {
 			log.error("Fatal error", x);
 			log.error("Classpath: " + System.getProperty("java.class.path"));
+			System.exit(1);
 		}
 	}
 

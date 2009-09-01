@@ -24,14 +24,8 @@
 	</build>
 	<dependencies>
 		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-core</artifactId>
-			<version>0.9.16</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>net.cadrian.photofam</groupId>
-			<artifactId>photofam-core</artifactId>
+			<artifactId>photofam-model</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
@@ -41,36 +35,5 @@
 			<version>1.5.8</version>
 			<scope>compile</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<version>1.5.8</version>
-			<scope>runtime</scope>
-		</dependency>
 	</dependencies>
-	<profiles>
-		<profile>
-			<id>run</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>exec-maven-plugin</artifactId>
-						<version>1.1</version>
-						<executions>
-							<execution>
-								<phase>install</phase>
-								<goals>
-									<goal>java</goal>
-								</goals>
-							</execution>
-						</executions>
-						<configuration>
-							<mainClass>net.cadrian.photofam.PhotoFam</mainClass>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
 </project>

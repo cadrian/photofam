@@ -2,6 +2,3 @@
 - fix thumbnails preview (lots of bugs: no refresh, array index out of bounds...)
 - fix the dates tree
 - put image metadata in the XML file, for faster access when re-opening the album
-- create a photofam-main module, move PhotoFam there and fix the dependencies:
-   - all modules but photofam-main must depend only on slf4j (not on logback)
-   - photofam-ui should depend on photofam-model, not on photofam-core
