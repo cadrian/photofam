@@ -49,6 +49,11 @@ public interface Image {
 	Collection<Tag> getTags ();
 
 	/**
+	 * @return the image metadata
+	 */
+	Metadata getMetadata ();
+
+	/**
 	 * @return the format of the image; never <code>null</code>.
 	 */
 	String getFormat ();

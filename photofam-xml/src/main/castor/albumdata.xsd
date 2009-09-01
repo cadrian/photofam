@@ -25,7 +25,10 @@
     		<element name="rotation" type="int" maxOccurs="1"
     			minOccurs="1">
     		</element>
-    		<element name="visible" type="boolean" maxOccurs="1" minOccurs="1"></element>
+    		<element name="date" type="date" maxOccurs="unbounded" minOccurs="0"></element>
+    		<element name="visible" type="boolean" maxOccurs="1"
+    			minOccurs="1">
+    		</element>
     		<element name="tag" type="string" maxOccurs="unbounded"
     			minOccurs="0">
     		</element>

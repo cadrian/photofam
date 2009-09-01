@@ -25,14 +25,15 @@ import java.util.ResourceBundle;
 /**
  * @author Cyril ADRIAN
  */
-interface UIComponent {
+public interface UIComponent {
 
 	/**
 	 * Component initialization (in dispatch tread)
 	 * 
 	 * @param a_screen
 	 *            the screen
-	 * @param a_dao TODO
+	 * @param a_dao
+	 *            TODO
 	 * @param a_bundle
 	 *            TODO
 	 */

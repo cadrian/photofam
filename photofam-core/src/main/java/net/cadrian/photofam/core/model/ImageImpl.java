@@ -18,6 +18,7 @@ package net.cadrian.photofam.core.model;
 import net.cadrian.photofam.exception.AlbumDAOException;
 import net.cadrian.photofam.model.Album;
 import net.cadrian.photofam.model.Image;
+import net.cadrian.photofam.model.Metadata;
 import net.cadrian.photofam.model.Tag;
 
 import java.io.File;
@@ -52,6 +53,8 @@ class ImageImpl implements Image {
 	private transient WeakReference<java.awt.Image> imageCache;
 	private transient SoftReference<java.awt.Image> thumbnailCache;
 	private transient int thumbnailSize;
+
+	private transient MetadataImpl metadata;
 
 	/**
 	 * @param a_album
@@ -162,6 +165,15 @@ class ImageImpl implements Image {
 			}
 			thumbnailCache = new SoftReference<java.awt.Image>(result);
 			thumbnailSize = a_size;
+		}
+		return result;
+	}
+
+	@Override
+	public Metadata getMetadata () {
+		MetadataImpl result = metadata;
+		if (result == null) {
+			result = metadata = new MetadataImpl(file);
 		}
 		return result;
 	}

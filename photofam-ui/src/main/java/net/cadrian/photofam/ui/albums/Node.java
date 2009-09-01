@@ -13,25 +13,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.cadrian.photofam.ui;
+package net.cadrian.photofam.ui.albums;
 
-import java.awt.Component;
+import net.cadrian.photofam.ui.ScreenChanges;
 
-import javax.swing.JTree;
-import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.Icon;
 
-/**
- * @author Cyril ADRIAN
- * 
- */
-class AlbumTreeCellRenderer extends DefaultTreeCellRenderer {
+interface Node {
+	String getName ();
 
-	@Override
-	public Component getTreeCellRendererComponent (JTree a_tree, Object a_value, boolean a_selected, boolean a_expanded,
-			boolean a_leaf, int a_row, boolean a_hasFocus) {
-		super.getTreeCellRendererComponent(a_tree, a_value, a_selected, a_expanded, a_leaf, a_row, a_hasFocus);
-		setIcon(((Albums.Node) a_value).getIcon());
-		return this;
-	}
+	int getChildCount ();
 
+	Node getChild (int i);
+
+	int getIndexOfChild (Node a_child);
+
+	boolean isLeaf ();
+
+	Icon getIcon ();
+
+	/**
+	 * @param a_screen
+	 */
+	void onSelect (ScreenChanges a_screen);
 }

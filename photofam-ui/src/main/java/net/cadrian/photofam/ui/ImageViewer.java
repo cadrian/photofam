@@ -64,14 +64,14 @@ class ImageViewer extends JPanel implements UIComponent {
 		setLayout(new BorderLayout());
 		add(viewport, BorderLayout.CENTER);
 
-		URL firstImageLocation = ImageViewer.class.getClassLoader().getResource("img/first-image.png");
-		URL previousImageLocation = ImageViewer.class.getClassLoader().getResource("img/previous-image.png");
-		URL nextImageLocation = ImageViewer.class.getClassLoader().getResource("img/next-image.png");
-		URL lastImageLocation = ImageViewer.class.getClassLoader().getResource("img/last-image.png");
-		URL rotateLeftLocation = ImageViewer.class.getClassLoader().getResource("img/rotate-left.png");
-		URL rotateRightLocation = ImageViewer.class.getClassLoader().getResource("img/rotate-right.png");
-		URL tagsLocation = ImageViewer.class.getClassLoader().getResource("img/image-tags.png");
-		URL deleteLocation = ImageViewer.class.getClassLoader().getResource("img/delete-image.png");
+		URL firstImageLocation = ImageViewer.class.getClassLoader().getResource("img/boomy/nav/first.png");
+		URL previousImageLocation = ImageViewer.class.getClassLoader().getResource("img/boomy/nav/previous.png");
+		URL nextImageLocation = ImageViewer.class.getClassLoader().getResource("img/boomy/nav/next.png");
+		URL lastImageLocation = ImageViewer.class.getClassLoader().getResource("img/boomy/nav/last.png");
+		URL rotateLeftLocation = ImageViewer.class.getClassLoader().getResource("img/boomy/nav/rotate_left.png");
+		URL rotateRightLocation = ImageViewer.class.getClassLoader().getResource("img/boomy/nav/rotate_right.png");
+		URL tagsLocation = ImageViewer.class.getClassLoader().getResource("img/boomy/nav/favadd.png");
+		URL deleteLocation = ImageViewer.class.getClassLoader().getResource("img/boomy/nav/delete.png");
 
 		JToolBar tools = new JToolBar();
 		add(tools, BorderLayout.SOUTH);

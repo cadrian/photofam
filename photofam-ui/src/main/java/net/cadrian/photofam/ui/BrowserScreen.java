@@ -19,6 +19,7 @@ import net.cadrian.photofam.dao.AlbumDAO;
 import net.cadrian.photofam.model.Album;
 import net.cadrian.photofam.model.Image;
 import net.cadrian.photofam.model.Tag;
+import net.cadrian.photofam.ui.albums.AlbumsTree;
 
 import java.awt.BorderLayout;
 import java.util.ResourceBundle;

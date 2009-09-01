@@ -40,6 +40,6 @@ public class AlbumException extends PhotoFamException {
 	 *            the cause
 	 */
 	public AlbumException (Key key, String albumName, Throwable cause) {
-		super(key, albumName, cause);
+		super(key, cause, albumName);
 	}
 }

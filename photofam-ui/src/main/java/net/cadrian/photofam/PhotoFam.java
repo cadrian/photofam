@@ -19,16 +19,22 @@ import net.cadrian.photofam.core.dao.AlbumDAOImpl;
 import net.cadrian.photofam.dao.AlbumDAO;
 import net.cadrian.photofam.ui.Screen;
 
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Cyril ADRIAN
  */
 public class PhotoFam {
+
+	private static final Logger log = LoggerFactory.getLogger(PhotoFam.class);
 
 	/**
 	 * @param args
@@ -37,18 +43,23 @@ public class PhotoFam {
 	 * @throws Exception
 	 *             if an error occurs during startup
 	 */
-	public static void main (String... args) throws Exception {
-		System.out.println("let's go");
-		setNativeLAF();
-		AlbumDAO dao = new AlbumDAOImpl();
-		final ResourceBundle bundle = ResourceBundle.getBundle("photofam");
-		final Screen screen = new Screen(dao, bundle);
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run () {
-				screen.init();
-				screen.setVisible(true);
-			}
-		});
+	public static void main (String... args) {
+		try {
+			setNativeLAF();
+			AlbumDAO dao = new AlbumDAOImpl();
+			log.debug("Default locale: " + Locale.getDefault());
+			final ResourceBundle bundle = ResourceBundle.getBundle("photofam");
+			final Screen screen = new Screen(dao, bundle);
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run () {
+					screen.init();
+					screen.setVisible(true);
+				}
+			});
+		} catch (Exception x) {
+			log.error("Fatal error", x);
+			log.error("Classpath: " + System.getProperty("java.class.path"));
+		}
 	}
 
 	private static void setNativeLAF () throws Exception {

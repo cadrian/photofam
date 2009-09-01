@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.cadrian.photofam.ui;
+package net.cadrian.photofam.ui.albums;
 
 import net.cadrian.photofam.dao.AlbumDAO;
 import net.cadrian.photofam.exception.PhotoFamException;
@@ -21,6 +21,9 @@ import net.cadrian.photofam.model.Album;
 import net.cadrian.photofam.model.AlbumListener;
 import net.cadrian.photofam.model.Image;
 import net.cadrian.photofam.model.Tag;
+import net.cadrian.photofam.ui.PanelData;
+import net.cadrian.photofam.ui.ScreenChanges;
+import net.cadrian.photofam.ui.UIComponent;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -46,14 +49,17 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Cyril ADRIAN
  */
-class AlbumsTree extends JPanel implements UIComponent, AlbumListener {
+public class AlbumsTree extends JPanel implements UIComponent, AlbumListener {
 
 	static final Logger log = LoggerFactory.getLogger(AlbumsTree.class);
 
 	private final JTree view;
 	final Albums model;
 
-	AlbumsTree () {
+	/**
+	 * Constructor
+	 */
+	public AlbumsTree () {
 		model = new Albums();
 		view = new JTree(model);
 	}
@@ -61,6 +67,7 @@ class AlbumsTree extends JPanel implements UIComponent, AlbumListener {
 	@Override
 	public void init (final ScreenChanges a_screen, final AlbumDAO a_dao, final ResourceBundle a_bundle) {
 		assert SwingUtilities.isEventDispatchThread();
+		model.setBundle(a_bundle);
 
 		setPreferredSize(new Dimension(300, 400));
 
@@ -76,12 +83,12 @@ class AlbumsTree extends JPanel implements UIComponent, AlbumListener {
 			@Override
 			public void valueChanged (TreeSelectionEvent e) {
 				for (Object o : e.getPath().getPath()) {
-					((Albums.Node) o).onSelect(a_screen);
+					((Node) o).onSelect(a_screen);
 				}
 			}
 		});
 
-		URL createAlbumImage = AlbumsTree.class.getClassLoader().getResource("img/create-album.png");
+		URL createAlbumImage = AlbumsTree.class.getClassLoader().getResource("img/boomy/tree/add.png");
 
 		JToolBar tools = new JToolBar();
 		JButton createAlbum = new JButton(new AbstractAction(null, new ImageIcon(createAlbumImage)) {

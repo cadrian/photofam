@@ -1,13 +1,16 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <parent>
-    <artifactId>photofam</artifactId>
-    <groupId>net.cadrian.photofam</groupId>
-    <version>0.0.1-SNAPSHOT</version>
-  </parent>
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>net.cadrian.photofam</groupId>
-  <artifactId>photofam-model</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<parent>
+		<artifactId>photofam</artifactId>
+		<groupId>net.cadrian.photofam</groupId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>net.cadrian.photofam</groupId>
+	<artifactId>photofam-model</artifactId>
+	<name>Photofam abstract model</name>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
 	<build>
 		<plugins>
 			<plugin>
