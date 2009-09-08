@@ -20,6 +20,7 @@ import net.cadrian.photofam.model.Album;
 import net.cadrian.photofam.model.Image;
 import net.cadrian.photofam.model.Metadata;
 import net.cadrian.photofam.model.Tag;
+import net.cadrian.photofam.model.metadata.TypedMetadataKey;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +28,7 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -95,6 +97,7 @@ class ImageImpl implements Image {
 		}
 		rotation = a_image.getRotation();
 		visible = a_image.getVisible();
+		metadata = new MetadataImpl(a_image);
 	}
 
 	@Override
@@ -264,6 +267,12 @@ class ImageImpl implements Image {
 		}
 		for (TagImpl tag : tags.values()) {
 			result.addTag(tag.getCompleteName());
+		}
+		TypedMetadataKey<Date> dateKey = getMetadata().getDate();
+		if (dateKey != null) {
+			for (Date date : dateKey.getValues()) {
+				result.addDate(date);
+			}
 		}
 		return result;
 	}

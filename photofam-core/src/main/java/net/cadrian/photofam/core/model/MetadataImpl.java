@@ -18,6 +18,7 @@ package net.cadrian.photofam.core.model;
 import net.cadrian.photofam.model.Metadata;
 import net.cadrian.photofam.model.metadata.Coordinates;
 import net.cadrian.photofam.model.metadata.TypedMetadataKey;
+import net.cadrian.photofam.xml.albumdata.Image;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -47,7 +48,6 @@ class MetadataImpl implements Metadata {
 			new SimpleDateFormat("yyyy:MM:dd HH:mm"), new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"),
 			new SimpleDateFormat("yyyy-MM-dd HH:mm") };
 
-	private File file;
 	private final com.drew.metadata.Metadata extract;
 	private transient TypedMetadataKey<Date> date;
 	private transient TypedMetadataKey<Coordinates> geolocalization;
@@ -58,7 +58,6 @@ class MetadataImpl implements Metadata {
 	 *            the image file
 	 */
 	public MetadataImpl (File a_file) {
-		file = a_file;
 		com.drew.metadata.Metadata meta;
 		try {
 			meta = ImageMetadataReader.readMetadata(a_file);
@@ -66,6 +65,18 @@ class MetadataImpl implements Metadata {
 			meta = null;
 		}
 		extract = meta;
+	}
+
+	/**
+	 * @param a_image
+	 */
+	public MetadataImpl (Image a_image) {
+		List<Date> dates = new ArrayList<Date>();
+		for (Date d : a_image.getDate()) {
+			dates.add(d);
+		}
+		date = new TypedMetadataKeyImpl<Date>("Date", dates);
+		extract = null;
 	}
 
 	@Override
